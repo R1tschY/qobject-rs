@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "compiler",
-    "macros"
+    "macros",
+    "examples/qobject"
 ]

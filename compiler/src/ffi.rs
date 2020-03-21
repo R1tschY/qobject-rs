@@ -5,7 +5,6 @@ extern "system" {
 */
 
 use crate::qobject::TypeRef;
-use std::borrow::Cow;
 use std::collections::HashSet;
 
 pub struct FfiFunction {
@@ -103,7 +102,6 @@ impl FfiBridge {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::qobject::{QObjectConfig, QObjectMethod};
 
     #[test]
     fn test_cpp_def_no_args() {

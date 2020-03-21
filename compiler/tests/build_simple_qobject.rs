@@ -1,17 +1,15 @@
 use qobject_compiler::build::build;
 use qobject_compiler::moc::MocConfig;
-use qobject_compiler::qobject::{QObjectConfig, QObjectSignal};
+use qobject_compiler::qobject::QObjectConfig;
 use qobject_compiler::CcBuild;
-use std::error::Error;
-use std::ffi::OsStr;
-use std::path::{Path, PathBuf};
-use std::{env, fs};
+use std::fs;
+use std::path::PathBuf;
 
 #[test]
 fn main() {
     let temp_file = tempfile::tempdir().unwrap();
     let dir = temp_file.path();
-    let path: PathBuf = dir.join("input.cpp");
+    let path: PathBuf = "input.cpp".into();
 
     let config = pkg_config::probe_library("Qt5Core").unwrap();
 
@@ -30,5 +28,8 @@ fn main() {
     let obj = QObjectConfig::new("MyQObject");
     build(&cpp, &moc, &path, &obj).unwrap();
 
+    assert!(path.exists());
+    assert!(path.with_extension("moc").exists());
+    assert!(path.with_file_name("libinput.a").exists());
     println!("{}", fs::read_to_string(&path).unwrap());
 }

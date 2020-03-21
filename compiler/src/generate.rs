@@ -135,11 +135,11 @@ fn generate_ffi_impl(meth: &QObjectMethod) -> String {
         format!(
             "{} out__;\n    {}({});\n    return out__;",
             rty.name(),
-            meth.ffi_name,
+            meth.get_ffi_name(),
             params.join(", ")
         )
     } else {
-        format!("    {}({});", meth.ffi_name, params.join(", "))
+        format!("    {}({});", meth.get_ffi_name(), params.join(", "))
     }
 }
 
@@ -196,7 +196,7 @@ impl GenerateCode for QObjectConfig {
             let mut args = meth.args.clone();
             args.insert(0, ("self_".into(), TypeRef::void_ptr()));
             ffi.function(FfiFunction::new_complete(
-                &meth.ffi_name,
+                meth.get_ffi_name(),
                 args,
                 meth.rtype.clone(),
             ));
@@ -229,18 +229,12 @@ impl GenerateCode for QObjectConfig {
         lines.push("public:".into());
         lines.push(
             format!(
-                "  {}(QObject* parent = nullptr) : QObject(parent) {{ this._d = Qffi_{}_new(this); }}",
+                "  {}(QObject* parent = nullptr) : QObject(parent) {{ _d = Qffi_{}_new(this); }}",
                 self.name, self.name
             )
             .into(),
         );
-        lines.push(
-            format!(
-                "  ~{}() {{ Qffi_{}_delete(this._d); }}",
-                self.name, self.name
-            )
-            .into(),
-        );
+        lines.push(format!("  ~{}() {{ Qffi_{}_delete(_d); }}", self.name, self.name).into());
         lines.push("".into());
         lines.extend(
             self.methods
@@ -269,7 +263,7 @@ mod tests {
 
     #[test]
     fn generate_simple_class() {
-        let obj = QObjectConfig::new("Dummy");
+        let mut obj = QObjectConfig::new("Dummy");
         let obj_clone = obj.clone();
         let obj = obj
             .inherit(TypeRef::qtobject("QObject"))
@@ -279,7 +273,11 @@ mod tests {
                 "dummy",
                 "dummyChanged",
             ))
-            .method(QObjectMethod::new(&obj_clone, "dummy").ret(&TypeRef::qstring()))
+            .method(
+                QObjectMethod::new("dummy")
+                    .ret(&TypeRef::qstring())
+                    .attach(&obj_clone),
+            )
             .signal(QObjectSignal::new("dummyChanged"));
         let code = generate_translation_unit("dummy.moc", &[&obj]);
 
@@ -302,9 +300,10 @@ mod tests {
     #[test]
     fn test_cpp_impl() {
         let def = generate_ffi_impl(
-            &QObjectMethod::new(&QObjectConfig::new("Test"), "test")
+            &(QObjectMethod::new("test")
                 .arg("arg0", &TypeRef::qtobject("CppType0"))
-                .arg("arg1", &TypeRef::qtobject("CppType1")),
+                .arg("arg1", &TypeRef::qtobject("CppType1"))
+                .attach(&QObjectConfig::new("Test"))),
         );
         assert_eq!(
             "    Qffi_Test_test(_d, std::forward<CppType0>(arg0), std::forward<CppType1>(arg1));",
@@ -315,9 +314,10 @@ mod tests {
     #[test]
     fn test_cpp_impl_with_return() {
         let def = generate_ffi_impl(
-            &QObjectMethod::new(&QObjectConfig::new("Test"), "test")
+            &QObjectMethod::new("test")
                 .arg("arg0", &TypeRef::qtobject("CppType0"))
-                .ret(&TypeRef::qtobject("RetCppType")),
+                .ret(&TypeRef::qtobject("RetCppType"))
+                .attach(&QObjectConfig::new("Test")),
         );
         assert_eq!(
             r#"

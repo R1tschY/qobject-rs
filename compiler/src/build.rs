@@ -27,6 +27,7 @@ pub fn build(
 
     // Generate
     let code = generate_translation_unit(&moc_name, &[obj]);
+    // TODO: check content before writing
     fs::write(path, &code).unwrap();
 
     // MOC
@@ -34,6 +35,7 @@ pub fn build(
 
     // C++
     cpp.clone()
+        .cpp(true)
         .file(path)
         .static_flag(true)
         .try_compile(output_name)
