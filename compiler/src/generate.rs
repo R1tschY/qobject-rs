@@ -2,7 +2,6 @@ use crate::ffi::{FfiBridge, FfiFunction, ImplCode};
 use crate::qobject::{Include, QObjectConfig, QObjectMethod, QObjectProp, QObjectSignal, TypeRef};
 use std::borrow::Cow;
 use std::collections::HashSet;
-use std::error::Error;
 use std::iter::FromIterator;
 
 pub trait Dependent {
@@ -74,7 +73,7 @@ fn generate_base_function_def(
             .unwrap_or("void".into()),
         name,
         args.iter()
-            .map(|(name, ty)| format!("{} {}", name, ty.cpp_type()))
+            .map(|(name, ty)| format!("{} {}", ty.cpp_type(), name))
             .collect::<Vec<String>>()
             .join(", "),
     )
@@ -140,13 +139,13 @@ fn generate_ffi_impl(meth: &QObjectMethod) -> String {
             params.join(", ")
         )
     } else {
-        format!("    {}({});", meth.get_ffi_name(), params.join(", "))
+        format!("{}({});", meth.get_ffi_name(), params.join(", "))
     }
 }
 
 fn generate_signal(signal: &QObjectSignal) -> String {
     format!(
-        "  {};",
+        "{};",
         generate_base_function_def(&signal.name, &signal.args, &None),
     )
 }
@@ -157,7 +156,10 @@ pub fn generate(moc_name: &str, objects: &[&QObjectConfig]) -> (String, String) 
         obj.fill_ffi_functions(&mut ffi);
     }
 
-    (generate_cpp(moc_name, objects, &ffi), generate_rust(&ffi))
+    (
+        generate_cpp(moc_name, objects, &ffi),
+        generate_rust(objects, &ffi),
+    )
 }
 
 fn generate_cpp(moc_name: &str, objects: &[&QObjectConfig], ffi: &FfiBridge) -> String {
@@ -212,11 +214,24 @@ impl GenerateCppCode for QObjectConfig {
         for meth in &self.methods {
             let mut args = meth.args.clone();
             args.insert(0, ("self_".into(), TypeRef::void_mut_ptr()));
+
+            let params: Vec<String> = meth.args.iter().map(|a| a.0.clone()).collect();
+            let call = format!(
+                "unsafe {{ {}(*(self_ as *mut {}Private)).{}({}) }}",
+                if meth.rtype.is_some() {
+                    "*out__ = "
+                } else {
+                    ""
+                },
+                self.name,
+                meth.name,
+                params.join(", ")
+            );
             ffi.rust_function(FfiFunction::new_complete(
                 meth.get_ffi_name(),
                 args,
                 meth.rtype.clone(),
-                ImplCode::Rust(format!("")), // TODO
+                ImplCode::Rust(call),
             ));
         }
         ffi.rust_function(FfiFunction::new_complete(
@@ -302,27 +317,70 @@ impl GenerateCppCode for QObjectConfig {
     fn generate_implementations(&self, _lines: &mut Vec<Cow<str>>) {}
 }
 
-fn generate_rust(ffi: &FfiBridge) -> String {
+fn generate_rust(objects: &[&QObjectConfig], ffi: &FfiBridge) -> String {
     let mut lines: Vec<Cow<str>> = vec![];
 
-    let uses: HashSet<String> = ffi
+    // Uses
+    let mut uses: HashSet<String> = ffi
         .get_rust_functions()
         .iter()
         .flat_map(|f| f.get_type_refs())
         .flat_map(|ty_ref| ty_ref.use_().map(|x| x.into()))
         .collect();
+    uses.insert("qt5qml::core::QObjectRef".into());
     for use_ in uses {
         lines.push(format!("use {};", use_).into());
     }
+    lines.push("".into());
 
+    // C++ extern
     lines.push("extern \"C\" {".into());
     for function in ffi.get_cpp_functions() {
         lines.push(function.generate_rust_def().into())
     }
     lines.push("}".into());
+    lines.push("".into());
 
+    // Rust functions
     for function in ffi.get_rust_functions() {
         lines.push(function.generate_rust_impl().into())
+    }
+
+    // Objects
+    for obj in objects {
+        lines.push(
+            format!(
+                r#"
+#[repr(C)]
+pub struct {0} {{
+    _private: [u8; 0],
+}}
+
+impl {0} {{
+    pub fn new(parent: *mut qt5qml::core::QObject) -> qt5qml::QBox<{0}> {{
+        unsafe {{ qt5qml::QBox::from_raw(Qffi_{0}_new(parent) as *mut _ as *mut {0}) }}
+    }}
+}}
+
+impl qt5qml::Deletable for {0} {{
+    unsafe fn delete(&mut self) {{
+        QObject::delete(self.get_qobject_mut_ptr());
+    }}
+}}
+
+impl qt5qml::core::QObjectRef for {0} {{
+    fn get_qobject_mut_ptr(&mut self) -> *mut qt5qml::core::QObject {{
+        self as *mut _ as *mut qt5qml::core::QObject
+    }}
+
+    fn get_qobject_ptr(&self) -> *const qt5qml::core::QObject {{
+        self as *const _ as *const qt5qml::core::QObject
+    }}
+}}"#,
+                obj.name
+            )
+            .into(),
+        );
     }
 
     lines.join("\n")

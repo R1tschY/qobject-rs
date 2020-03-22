@@ -15,7 +15,6 @@ pub mod ffi;
 pub mod generate;
 pub mod moc;
 pub mod qobject;
-pub mod rust;
 
 pub mod build;
 
@@ -35,18 +34,18 @@ impl QObjectBuild {
         self
     }
 
-    pub fn property<T: Into<QObjectProp>>(&mut self, prop: T) -> &mut Self {
-        self.obj.property(prop.into());
+    pub fn property(&mut self, prop: &QObjectProp) -> &mut Self {
+        self.obj.property(prop.clone());
         self
     }
 
-    pub fn method<T: Into<QObjectMethod>>(&mut self, meth: T) -> &mut Self {
-        self.obj.method(meth.into());
+    pub fn method(&mut self, meth: &QObjectMethod) -> &mut Self {
+        self.obj.method(meth.clone());
         self
     }
 
-    pub fn signal<T: Into<QObjectSignal>>(&mut self, signal: T) -> &mut Self {
-        self.obj.signal(signal.into());
+    pub fn signal(&mut self, signal: &QObjectSignal) -> &mut Self {
+        self.obj.signal(signal.clone());
         self
     }
 

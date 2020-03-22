@@ -41,7 +41,7 @@ impl TypeRef {
             cpp: "QObject".into(),
             rust: "QObject".into(),
             include: Some(Include::System("QObject".into())),
-            use_: Some("qt5qml::sys::QObject".into()),
+            use_: Some("qt5qml::core::QObject".into()),
         }
     }
 
@@ -50,7 +50,7 @@ impl TypeRef {
             cpp: "QObject*".into(),
             rust: "*mut QObject".into(),
             include: Some(Include::System("QObject".into())),
-            use_: Some("qt5qml::sys::QObject".into()),
+            use_: Some("qt5qml::core::QObject".into()),
         }
     }
 
@@ -59,7 +59,7 @@ impl TypeRef {
             cpp: class_name.into(),
             rust: class_name.into(),
             include: Some(Include::System(class_name.into())),
-            use_: Some(format!("qt5qml::sys::{}", class_name)),
+            use_: Some(format!("qt5qml::core::{}", class_name)),
         }
     }
 

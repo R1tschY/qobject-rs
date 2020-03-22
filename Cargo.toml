@@ -3,5 +3,9 @@ members = [
     "compiler",
     "macros",
     "qt5qml",
+    "tests/properties",
     "examples/qobject"
 ]
+
+#[profile.bench]
+#lto = true

@@ -1,11 +1,20 @@
 #[macro_use]
 extern crate cpp;
 
-pub mod sys;
+#[macro_export]
+macro_rules! opaque_struct {
+    ($x:ident) => {
+        #[repr(C)]
+        pub struct $x {
+            _private: [u8; 0],
+        }
+    };
+}
+
+pub mod core;
 
 use std::ops::Deref;
 use std::ptr;
-pub use sys::*;
 
 pub trait Deletable {
     unsafe fn delete(&mut self);
