@@ -6,78 +6,96 @@ pub enum Include {
 
 #[derive(Clone, Debug)]
 pub struct TypeRef {
-    name: String,
+    cpp: String,
+    rust: String,
     include: Option<Include>,
+    use_: Option<String>,
 }
 
 impl TypeRef {
-    pub fn new(class_name: &str, include: Option<Include>) -> Self {
+    pub fn new(
+        cpp_name: &str,
+        rust_name: &str,
+        include: Option<Include>,
+        use_: Option<String>,
+    ) -> Self {
         Self {
-            name: class_name.into(),
+            cpp: cpp_name.into(),
+            rust: rust_name.into(),
             include,
+            use_,
         }
     }
 
-    pub fn void_ptr() -> Self {
+    pub fn void_mut_ptr() -> Self {
         Self {
-            name: "void*".into(),
+            cpp: "void*".into(),
             include: None,
+            rust: "*mut c_void".into(),
+            use_: Some("std::os::raw::c_void".into()),
         }
     }
 
     pub fn qobject() -> Self {
         Self {
-            name: "QObject".into(),
+            cpp: "QObject".into(),
+            rust: "QObject".into(),
             include: Some(Include::System("QObject".into())),
+            use_: Some("qt5qml::sys::QObject".into()),
         }
     }
 
     pub fn qobject_ptr() -> Self {
         Self {
-            name: "QObject*".into(),
+            cpp: "QObject*".into(),
+            rust: "*mut QObject".into(),
             include: Some(Include::System("QObject".into())),
-        }
-    }
-
-    pub fn qtobject_ptr(class_name: &str) -> Self {
-        Self {
-            name: format!("{}*", class_name),
-            include: Some(Include::System(class_name.into())),
+            use_: Some("qt5qml::sys::QObject".into()),
         }
     }
 
     pub fn qtobject(class_name: &str) -> Self {
         Self {
-            name: class_name.into(),
+            cpp: class_name.into(),
+            rust: class_name.into(),
             include: Some(Include::System(class_name.into())),
+            use_: Some(format!("qt5qml::sys::{}", class_name)),
         }
     }
 
     pub fn with_mut_ptr(&self) -> Self {
         Self {
-            name: format!("{}*", self.name),
+            cpp: format!("{}*", self.cpp),
             include: self.include.clone(),
+            rust: format!("*mut {}", self.rust),
+            use_: self.use_.clone(),
         }
     }
 
     pub fn with_const_ptr(&self) -> Self {
         Self {
-            name: format!("const {}*", self.name),
+            cpp: format!("const {}*", self.cpp),
             include: self.include.clone(),
+            rust: format!("*const {}", self.rust),
+            use_: self.use_.clone(),
         }
     }
 
     pub fn with_mut_ref(&self) -> Self {
         Self {
-            name: format!("{}&", self.name),
+            cpp: format!("{}&", self.cpp),
             include: self.include.clone(),
+            rust: format!("&mut {}", self.rust),
+            use_: self.use_.clone(),
         }
     }
 
     pub fn with_const_ref(&self) -> Self {
         Self {
-            name: format!("const {}&", self.name),
+            cpp: format!("const {}&", self.cpp),
             include: self.include.clone(),
+            rust: format!("&{}", self.rust),
+            use_: self.use_.clone(),
         }
     }
 
@@ -85,12 +103,20 @@ impl TypeRef {
         Self::qtobject("QString")
     }
 
-    pub fn name(&self) -> &str {
-        &self.name
+    pub fn cpp_type(&self) -> &str {
+        &self.cpp
+    }
+
+    pub fn rust_type(&self) -> &str {
+        &self.rust
     }
 
     pub fn include(&self) -> &Option<Include> {
         &self.include
+    }
+
+    pub fn use_(&self) -> Option<&str> {
+        self.use_.as_ref().map(|x| x as &str)
     }
 }
 

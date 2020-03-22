@@ -1,5 +1,5 @@
 [package]
-name = "qobject"
+name = "qt5qml"
 version = "0.1.0"
 authors = ["R1tschY <r1tschy@posteo.de>"]
 edition = "2018"
@@ -7,8 +7,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-qt5qml = { path = "../../qt5qml" }
+cpp = "0.5"
 
 [build-dependencies]
-qobject-compiler = { path = "../../compiler" }
+cpp_build = "0.5"
 pkg-config = "0.3"

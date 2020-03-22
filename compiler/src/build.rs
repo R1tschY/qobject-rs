@@ -1,4 +1,4 @@
-use crate::generate::generate_translation_unit;
+use crate::generate::generate;
 use crate::moc::MocConfig;
 use crate::qobject::QObjectConfig;
 use crate::CcBuild;
@@ -17,6 +17,7 @@ pub fn build(
     obj: &QObjectConfig,
 ) -> Result<(), Box<dyn Error>> {
     let moc_path: PathBuf = path.with_extension("moc");
+    let rs_path: PathBuf = path.with_extension("rs");
     let output_name = path.file_stem().unwrap().to_str().unwrap();
 
     let moc_name = moc_path
@@ -26,9 +27,10 @@ pub fn build(
         .ok_or_else(|| invalid_arg("input path is not valid UTF-8"))?;
 
     // Generate
-    let code = generate_translation_unit(&moc_name, &[obj]);
+    let (cpp_code, rust_code) = generate(&moc_name, &[obj]);
     // TODO: check content before writing
-    fs::write(path, &code).unwrap();
+    fs::write(path, &cpp_code).unwrap();
+    fs::write(rs_path, &rust_code).unwrap();
 
     // MOC
     moc.build(path, &moc_path).unwrap();
