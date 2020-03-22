@@ -206,7 +206,7 @@ mod tests {
     #[test]
     fn test_cpp_def_one_arg() {
         let def = &FfiFunction::new("test")
-            .arg("arg0", TypeRef::qtobject("CppType"))
+            .arg("arg0", TypeRef::qt_core_object("CppType"))
             .generate_cpp_def();
         assert_eq!("extern \"C\" void test(CppType arg0);", def);
     }
@@ -214,8 +214,8 @@ mod tests {
     #[test]
     fn test_cpp_def_many_args() {
         let def = &FfiFunction::new("test")
-            .arg("arg0", TypeRef::qtobject("CppType0"))
-            .arg("arg1", TypeRef::qtobject("CppType1"))
+            .arg("arg0", TypeRef::qt_core_object("CppType0"))
+            .arg("arg1", TypeRef::qt_core_object("CppType1"))
             .generate_cpp_def();
         assert_eq!(def, "extern \"C\" void test(CppType0 arg0, CppType1 arg1);");
     }
@@ -223,9 +223,9 @@ mod tests {
     #[test]
     fn test_cpp_def_with_return() {
         let def = &FfiFunction::new("test")
-            .arg("arg0", TypeRef::qtobject("CppType0"))
-            .arg("arg1", TypeRef::qtobject("CppType1"))
-            .ret(TypeRef::qtobject("RetCppType"))
+            .arg("arg0", TypeRef::qt_core_object("CppType0"))
+            .arg("arg1", TypeRef::qt_core_object("CppType1"))
+            .ret(TypeRef::qt_core_object("RetCppType"))
             .generate_cpp_def();
         assert_eq!(
             "extern \"C\" void test(CppType0 arg0, CppType1 arg1, RetCppType* out__);",

@@ -1,25 +1,24 @@
-mod sys {
-    include!(concat!(env!("OUT_DIR"), "/qffi_MyQObject.rs"));
+use std::ffi::CString;
+use std::ptr;
 
-    pub struct MyQObjectPrivate {
-        qobject: *mut QObject,
-        mydata: String,
-    }
+use qt5qml::core::QObject;
+use qt5qml::core::QObjectRef;
 
-    impl MyQObjectPrivate {
-        pub fn new(qobject: *mut QObject) -> Self {
-            Self {
-                qobject,
-                mydata: "".into(),
-            }
+include!(concat!(env!("OUT_DIR"), "/qffi_MyQObject.rs"));
+
+pub struct MyQObjectPrivate {
+    qobject: *mut QObject,
+    mydata: String,
+}
+
+impl MyQObjectPrivate {
+    pub fn new(qobject: *mut QObject) -> Self {
+        Self {
+            qobject,
+            mydata: "".into(),
         }
     }
 }
-
-use crate::sys::MyQObject;
-use qt5qml::core::QObjectRef;
-use std::ffi::CString;
-use std::ptr;
 
 fn main() {
     let obj = MyQObject::new(ptr::null_mut());
