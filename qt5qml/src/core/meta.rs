@@ -1,5 +1,6 @@
+use crate::core::{QObject, QVariant};
 use crate::QBox;
-use std::ffi::{CStr, CString};
+use std::ffi::{c_void, CStr, CString};
 use std::os::raw::c_char;
 
 cpp! {{
@@ -8,7 +9,6 @@ cpp! {{
 }}
 
 opaque_struct!(QMetaObject);
-cpp_class!(#[derive(Clone)] pub unsafe struct QMetaProperty as "QMetaProperty");
 
 impl QMetaObject {
     pub fn class_name(&self) -> &CStr {
@@ -78,7 +78,86 @@ impl<'t> Iterator for PropertyIterator<'t> {
     }
 }
 
+cpp_class!(#[derive(Clone)] pub unsafe struct QMetaProperty as "QMetaProperty");
+
 impl QMetaProperty {
+    pub fn has_notify_signal(&self) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
+            return self->hasNotifySignal();
+        })
+    }
+
+    pub fn is_constant(&self) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
+            return self->isConstant();
+        })
+    }
+
+    pub fn is_designable(&self) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
+            return self->isDesignable();
+        })
+    }
+
+    pub fn is_enum_type(&self) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
+            return self->isEnumType();
+        })
+    }
+
+    pub fn is_final(&self) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
+            return self->isFinal();
+        })
+    }
+
+    pub fn is_flag_type(&self) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
+            return self->isFlagType();
+        })
+    }
+
+    pub fn is_readable(&self) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
+            return self->isReadable();
+        })
+    }
+
+    pub fn is_resettable(&self) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
+            return self->isResettable();
+        })
+    }
+
+    pub fn is_scriptable(&self) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
+            return self->isScriptable();
+        })
+    }
+
+    pub fn is_stored(&self) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
+            return self->isStored();
+        })
+    }
+
+    pub fn is_user(&self) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
+            return self->isUser();
+        })
+    }
+
+    #[inline]
+    pub fn is_valid(&self) -> bool {
+        self.is_readable()
+    }
+
+    pub fn is_writable(&self) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
+            return self->isWritable();
+        })
+    }
+
     pub fn name(&self) -> &CStr {
         unsafe {
             CStr::from_ptr(
@@ -88,4 +167,82 @@ impl QMetaProperty {
             )
         }
     }
+
+    pub fn notify_signal(&self) -> QMetaMethod {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> QMetaMethod as "QMetaMethod" {
+            return self->notifySignal();
+        })
+    }
+
+    pub fn notify_signal_index(&self) -> i32 {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> i32 as "int" {
+            return self->notifySignalIndex();
+        })
+    }
+
+    pub fn property_index(&self) -> i32 {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> i32 as "int" {
+            return self->propertyIndex();
+        })
+    }
+
+    pub fn read(&self, object: &QObject) -> QVariant {
+        cpp!(unsafe [self as "const QMetaProperty*",
+                     object as "const QObject*"] -> QVariant as "QVariant" {
+            return self->read(object);
+        })
+    }
+
+    pub unsafe fn read_on_gadget(&self, gadget: &c_void) -> QVariant {
+        cpp!(unsafe [self as "const QMetaProperty*",
+                     gadget as "const void*"] -> QVariant as "QVariant" {
+            return self->readOnGadget(gadget);
+        })
+    }
+
+    pub fn reset(&self, object: &mut QObject) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*", object as "QObject*"] -> bool as "bool" {
+            return self->reset(object);
+        })
+    }
+
+    pub unsafe fn resetOnGadget(&self, gadget: &mut c_void) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*", gadget as "void*"] -> bool as "bool" {
+            return self->resetOnGadget(gadget);
+        })
+    }
+
+    pub fn revision(&self) -> i32 {
+        cpp!(unsafe [self as "const QMetaProperty*"] -> i32 as "int" {
+            return self->revision();
+        })
+    }
+
+    pub fn type_name(&self) -> &CStr {
+        unsafe {
+            CStr::from_ptr(
+                cpp!([self as "const QMetaProperty*"] -> *const c_char as "const char*" {
+                    return self->typeName();
+                }),
+            )
+        }
+    }
+
+    pub fn write(&self, object: &mut QObject, value: &QVariant) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*",
+                     object as "QObject*",
+                     value as "const QVariant*"] -> bool as "bool" {
+            return self->write(object, *value);
+        })
+    }
+
+    pub unsafe fn write_on_gadget(&self, gadget: &mut c_void, value: &QVariant) -> bool {
+        cpp!(unsafe [self as "const QMetaProperty*",
+                     gadget as "void*",
+                     value as "const QVariant*"] -> bool as "bool" {
+            return self->writeOnGadget(gadget, *value);
+        })
+    }
 }
+
+cpp_class!(#[derive(Clone)] pub unsafe struct QMetaMethod as "QMetaMethod");
