@@ -1,3 +1,8 @@
+cpp! {{
+    #include <QDebug>
+}}
+
+mod debug;
 mod meta;
 mod object;
 mod string;

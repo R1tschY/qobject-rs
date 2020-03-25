@@ -1,5 +1,5 @@
 use std::fmt;
-use std::fmt::{Display, Error, Formatter};
+use std::fmt::{Debug, Display, Error, Formatter};
 
 cpp! {{
     #include <QString>
@@ -50,7 +50,7 @@ impl QString {
     }
 
     pub fn to_string(&self) -> String {
-        String::from_utf8(self.to_utf8().as_slice().to_vec()).expect("QString with invalid unicode")
+        Self::decode(self.to_utf8())
     }
 
     pub fn utf16(&self) -> &[u16] {
@@ -70,6 +70,10 @@ impl QString {
         cpp!(unsafe [self as "const QString*"] -> i32 as "int" {
             return self->size();
         }) as usize
+    }
+
+    pub(crate) fn decode(bytes: QByteArray) -> String {
+        String::from_utf8(bytes.as_slice().to_vec()).expect("QString with invalid unicode")
     }
 }
 
@@ -111,6 +115,12 @@ impl From<&QString> for String {
 impl Display for QString {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&self.to_string())
+    }
+}
+
+impl Debug for QString {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        (&self.to_string() as &dyn Debug).fmt(f)
     }
 }
 

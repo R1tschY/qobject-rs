@@ -13,7 +13,7 @@ macro_rules! opaque_struct {
 
 pub mod core;
 
-use std::ops::Deref;
+use std::ops::{Deref, DerefMut};
 use std::ptr;
 
 pub trait Deletable {
@@ -33,6 +33,12 @@ impl<T: Deletable> Deref for QBox<T> {
 
     fn deref(&self) -> &T {
         unsafe { self.0.as_ref() }
+    }
+}
+
+impl<T: Deletable> DerefMut for QBox<T> {
+    fn deref_mut(&mut self) -> &mut T {
+        unsafe { self.0.as_mut() }
     }
 }
 

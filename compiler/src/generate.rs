@@ -352,17 +352,17 @@ impl {0} {{
 impl qt5qml::Deletable for {0} {{
     unsafe fn delete(&mut self) {{
         use qt5qml::core::QObjectRef;
-        qt5qml::core::QObject::delete(self.get_qobject_mut_ptr());
+        qt5qml::core::QObject::delete(self.get_qobject_mut());
     }}
 }}
 
 impl qt5qml::core::QObjectRef for {0} {{
-    fn get_qobject_mut_ptr(&mut self) -> *mut qt5qml::core::QObject {{
-        self as *mut _ as *mut qt5qml::core::QObject
+    fn get_qobject_mut(&mut self) -> &mut qt5qml::core::QObject {{
+        unsafe {{ &mut *(self as *mut _ as *mut qt5qml::core::QObject) }}
     }}
 
-    fn get_qobject_ptr(&self) -> *const qt5qml::core::QObject {{
-        self as *const _ as *const qt5qml::core::QObject
+    fn get_qobject(&self) -> &qt5qml::core::QObject {{
+        unsafe {{ &*(self as *const _ as *const qt5qml::core::QObject) }}
     }}
 }}"#,
                 obj.name

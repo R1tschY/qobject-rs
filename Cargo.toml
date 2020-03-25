@@ -1,7 +1,6 @@
 [workspace]
 members = [
     "compiler",
-    "macros",
     "qt5qml",
     "tests/properties",
     "examples/qobject"
