@@ -7,12 +7,12 @@ use qt5qml::core::QObjectRef;
 include!(concat!(env!("OUT_DIR"), "/qffi_MyQObject.rs"));
 
 pub struct MyQObjectPrivate {
-    qobject: *mut QObject,
+    qobject: *mut MyQObject,
     mydata: String,
 }
 
 impl MyQObjectPrivate {
-    pub fn new(qobject: *mut QObject) -> Self {
+    pub fn new(qobject: *mut MyQObject) -> Self {
         Self {
             qobject,
             mydata: "".into(),

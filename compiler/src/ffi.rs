@@ -12,6 +12,7 @@ pub(crate) struct FfiFunction {
     args: Vec<(String, TypeRef)>,
     rtype: Option<TypeRef>,
     body: ImplCode,
+    friend_class: Option<String>,
 }
 
 impl FfiFunction {
@@ -21,6 +22,7 @@ impl FfiFunction {
             args: vec![],
             rtype: None,
             body: ImplCode::Extern,
+            friend_class: None,
         }
     }
 
@@ -29,12 +31,14 @@ impl FfiFunction {
         args: Vec<(String, TypeRef)>,
         rtype: Option<TypeRef>,
         body: ImplCode,
+        friend_class: Option<String>,
     ) -> Self {
         Self {
             name: name.into(),
             args,
             rtype,
             body,
+            friend_class,
         }
     }
 
@@ -58,6 +62,15 @@ impl FfiFunction {
         self
     }
 
+    pub fn friend_class(&mut self, cls: &str) -> &mut Self {
+        self.friend_class = Some(cls.into());
+        self
+    }
+
+    pub fn get_friend_class(&self) -> Option<&str> {
+        self.friend_class.as_ref().map(|x| x as &str)
+    }
+
     pub fn get_type_refs(&self) -> Vec<TypeRef> {
         let mut result: Vec<TypeRef> = self.args.iter().map(|a| a.1.clone()).collect();
         if let Some(rtype) = &self.rtype {
@@ -66,7 +79,7 @@ impl FfiFunction {
         result
     }
 
-    fn generate_cpp_sig(&self) -> String {
+    pub fn generate_cpp_sig(&self) -> String {
         let mut args: Vec<String> = self
             .args
             .iter()
@@ -99,6 +112,14 @@ impl FfiFunction {
             self.generate_cpp_sig(),
             body
         )
+    }
+
+    pub fn generate_friend_cpp_impl(&self) -> String {
+        let body = match &self.body {
+            ImplCode::Cpp(body) => body,
+            _ => panic!("No C++ body for {}", self.name),
+        };
+        format!("friend {} {{\n  {}\n}}", self.generate_cpp_sig(), body)
     }
 
     fn generate_rust_sig(&self) -> String {

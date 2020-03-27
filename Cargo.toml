@@ -3,6 +3,7 @@ members = [
     "compiler",
     "qt5qml",
     "tests/properties",
+    "tests/signals",
     "examples/qobject"
 ]
 

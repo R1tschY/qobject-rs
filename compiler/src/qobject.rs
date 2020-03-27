@@ -36,6 +36,14 @@ impl TypeRef {
         }
     }
 
+    pub fn generated(name: &str) -> Self {
+        Self {
+            cpp: name.into(),
+            rust: name.into(),
+            include: None,
+        }
+    }
+
     pub fn qobject_ptr() -> Self {
         Self {
             cpp: "QObject*".into(),
@@ -197,7 +205,7 @@ impl QObjectSignal {
         }
     }
 
-    pub fn arg(&mut self, name: &str, type_ref: &TypeRef) -> &mut Self {
+    pub fn arg(mut self, name: &str, type_ref: &TypeRef) -> Self {
         self.args.push((name.into(), type_ref.clone()));
         self
     }

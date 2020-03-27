@@ -43,13 +43,14 @@ impl Dependent for QObjectConfig {
         if let Some(include) = self.base_class.include() {
             includes.insert(include.clone());
         }
+        includes.insert(Include::System("utility".into())); // required for std::forward
     }
 }
 
 trait GenerateCppCode: Dependent {
     fn fill_ffi_functions(&self, ffi: &mut FfiBridge);
     fn generate_forward_definitions(&self, lines: &mut Vec<Cow<str>>);
-    fn generate_classes(&self, lines: &mut Vec<Cow<str>>);
+    fn generate_classes(&self, lines: &mut Vec<Cow<str>>, friend_func: &[&FfiFunction]);
     fn generate_implementations(&self, lines: &mut Vec<Cow<str>>);
 }
 
@@ -186,11 +187,19 @@ fn generate_cpp(moc_name: &str, objects: &[&QObjectConfig], ffi: &FfiBridge) -> 
     for function in ffi.get_rust_functions() {
         lines.push(function.generate_cpp_def().into());
     }
+    for function in ffi.get_cpp_functions() {
+        lines.push(function.generate_cpp_def().into());
+    }
 
     // classes
     lines.push("".into());
     for obj in objects {
-        obj.generate_classes(&mut lines);
+        let friends: Vec<&FfiFunction> = ffi
+            .get_cpp_functions()
+            .iter()
+            .filter(|f| f.get_friend_class().map(|f| f == obj.name).unwrap_or(false))
+            .collect();
+        obj.generate_classes(&mut lines, &friends);
     }
 
     // impls
@@ -199,7 +208,9 @@ fn generate_cpp(moc_name: &str, objects: &[&QObjectConfig], ffi: &FfiBridge) -> 
         obj.generate_implementations(&mut lines);
     }
     for function in ffi.get_cpp_functions() {
-        lines.push(function.generate_cpp_impl().into());
+        if function.get_friend_class().is_none() {
+            lines.push(function.generate_cpp_impl().into());
+        }
     }
 
     // moc
@@ -223,8 +234,8 @@ impl GenerateCppCode for QObjectConfig {
                 } else {
                     ""
                 },
-                self.name,
-                meth.name,
+                &self.name,
+                &meth.name,
                 params.join(", ")
             );
             ffi.rust_function(FfiFunction::new_complete(
@@ -232,16 +243,21 @@ impl GenerateCppCode for QObjectConfig {
                 args,
                 meth.rtype.clone(),
                 ImplCode::Rust(call),
+                None,
             ));
         }
         ffi.rust_function(FfiFunction::new_complete(
-            &format!("Qffi_{}_private_new", self.name),
-            vec![("qobject".into(), TypeRef::qobject_ptr())],
+            &format!("Qffi_{}_private_new", &self.name),
+            vec![(
+                "qobject".into(),
+                TypeRef::generated(&self.name).with_mut_ptr(),
+            )],
             Some(TypeRef::void_mut_ptr()),
             ImplCode::Rust(format!(
                 "Box::into_raw(Box::new({}Private::new(qobject))) as *mut std::ffi::c_void",
-                self.name
+                &self.name
             )),
+            None,
         ));
         ffi.rust_function(FfiFunction::new_complete(
             &format!("Qffi_{}_private_delete", self.name),
@@ -249,26 +265,49 @@ impl GenerateCppCode for QObjectConfig {
             None,
             ImplCode::Rust(format!(
                 "unsafe {{ Box::from_raw(self_ as *mut {}Private) }};",
-                self.name
+                &self.name
             )),
+            None,
         ));
         ffi.cpp_function(FfiFunction::new_complete(
-            &format!("Qffi_{}_new", self.name),
+            &format!("Qffi_{}_new", &self.name),
             vec![("parent".into(), TypeRef::qobject_ptr())],
             Some(TypeRef::qobject_ptr()),
-            ImplCode::Cpp(format!("return new {}(parent);", self.name)),
+            ImplCode::Cpp(format!("return new {}(parent);", &self.name)),
+            None,
         ));
+
+        for signal in &self.signals {
+            let mut args = signal.args.clone();
+            args.insert(
+                0,
+                (
+                    "self_".into(),
+                    TypeRef::generated(&self.name).with_mut_ptr(),
+                ),
+            );
+
+            let params: Vec<String> = signal.args.iter().map(|a| a.0.clone()).collect();
+            let body = format!("Q_EMIT self_->{}({});", signal.name, params.join(", "));
+            ffi.cpp_function(FfiFunction::new_complete(
+                &format!("Qffi_{}_{}", self.name, signal.name),
+                args,
+                None,
+                ImplCode::Cpp(body.into()),
+                Some(self.name.clone()),
+            ));
+        }
     }
 
     fn generate_forward_definitions(&self, lines: &mut Vec<Cow<str>>) {
         lines.push(format!("class {};", self.name).into());
     }
 
-    fn generate_classes(&self, lines: &mut Vec<Cow<str>>) {
+    fn generate_classes(&self, lines: &mut Vec<Cow<str>>, friend_funcs: &[&FfiFunction]) {
         lines.push(
             format!(
                 "class {} : public {} {{",
-                self.name,
+                &self.name,
                 self.base_class.cpp_type()
             )
             .into(),
@@ -283,18 +322,12 @@ impl GenerateCppCode for QObjectConfig {
         lines.push("public:".into());
         lines.push(
             format!(
-                "  {}(QObject* parent = nullptr) : QObject(parent) {{ _d = Qffi_{}_private_new(this); }}",
-                self.name, self.name
+                "  {0}(QObject* parent = nullptr) : QObject(parent) {{ _d = Qffi_{0}_private_new(this); }}",
+                &self.name
             )
             .into(),
         );
-        lines.push(
-            format!(
-                "  ~{}() {{ Qffi_{}_private_delete(_d); }}",
-                self.name, self.name
-            )
-            .into(),
-        );
+        lines.push(format!("  ~{0}() {{ Qffi_{0}_private_delete(_d); }}", &self.name).into());
         lines.push("".into());
         lines.extend(
             self.methods
@@ -311,6 +344,10 @@ impl GenerateCppCode for QObjectConfig {
         lines.push("".into());
         lines.push("private:".into());
         lines.push("  void* _d;".into());
+        lines.push("".into());
+        for friend in friend_funcs {
+            lines.push(friend.generate_friend_cpp_impl().into());
+        }
         lines.push("};".into());
     }
 
@@ -343,12 +380,6 @@ pub struct {0} {{
     _private: [u8; 0],
 }}
 
-impl {0} {{
-    pub fn new(parent: *mut qt5qml::core::QObject) -> qt5qml::QBox<{0}> {{
-        unsafe {{ qt5qml::QBox::from_raw(Qffi_{0}_new(parent) as *mut _ as *mut {0}) }}
-    }}
-}}
-
 impl qt5qml::Deletable for {0} {{
     unsafe fn delete(&mut self) {{
         use qt5qml::core::QObjectRef;
@@ -364,11 +395,44 @@ impl qt5qml::core::QObjectRef for {0} {{
     fn get_qobject(&self) -> &qt5qml::core::QObject {{
         unsafe {{ &*(self as *const _ as *const qt5qml::core::QObject) }}
     }}
-}}"#,
+}}
+
+impl {0} {{
+    pub fn new(parent: *mut qt5qml::core::QObject) -> qt5qml::QBox<{0}> {{
+        unsafe {{ qt5qml::QBox::from_raw(Qffi_{0}_new(parent) as *mut _ as *mut {0}) }}
+    }}"#,
                 obj.name
             )
             .into(),
         );
+
+        lines.push("".into());
+        for signal in &obj.signals {
+            let mut args: Vec<String> = signal
+                .args
+                .iter()
+                .map(|arg| format!("{}: {}", arg.0, arg.1.rust_type()))
+                .collect();
+            args.insert(0, "&mut self".into());
+            let mut params: Vec<String> = signal.args.iter().map(|arg| arg.0.clone()).collect();
+            params.insert(0, "self".into());
+            lines.push(
+                format!(
+                    r#"
+    pub(crate) unsafe fn {1}({2}) {{
+        use qt5qml::core::QObjectRef;
+        Qffi_{0}_{1}({3});
+    }}
+"#,
+                    obj.name,
+                    signal.name,
+                    args.join(", "),
+                    params.join(", ")
+                )
+                .into(),
+            );
+        }
+        lines.push("}".into());
     }
 
     lines.join("\n")
@@ -394,8 +458,7 @@ mod tests {
                 QObjectMethod::new("dummy")
                     .ret(&TypeRef::qstring())
                     .attach(&obj_clone),
-            )
-            .signal(QObjectSignal::new("dummyChanged"));
+            );
         let (code, _) = generate("dummy.moc", &[&obj]);
 
         println!("{}", code);
@@ -444,5 +507,20 @@ mod tests {
                 .trim(),
             def.trim()
         );
+    }
+
+    #[test]
+    fn test_cpp_class_with_signal() {
+        let mut obj = QObjectConfig::new("Dummy");
+        let obj_clone = obj.clone();
+        let obj = obj
+            .inherit(TypeRef::qobject())
+            .signal(QObjectSignal::new("testSignal").arg("arg0", &TypeRef::qobject_ptr()));
+        let (code, _) = generate("dummy.moc", &[&obj]);
+
+        println!("{}", code);
+
+        assert!(code.contains("friend void Qffi_Dummy_testSignal(Dummy* self_, QObject* arg0)"));
+        assert!(code.contains("Q_EMIT self_->testSignal(arg0)"));
     }
 }

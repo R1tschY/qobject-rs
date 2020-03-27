@@ -6,14 +6,14 @@ use std::ptr;
 include!(concat!(env!("OUT_DIR"), "/qffi_TestObject.rs"));
 
 pub struct TestObjectPrivate {
-    qobject: *mut qt5qml::core::QObject,
+    qobject: *mut TestObject,
     mydata: String,
     prop_rw: String,
     prop_w: String,
 }
 
 impl TestObjectPrivate {
-    pub fn new(qobject: *mut qt5qml::core::QObject) -> Self {
+    pub fn new(qobject: *mut TestObject) -> Self {
         Self {
             qobject,
             mydata: "".into(),
