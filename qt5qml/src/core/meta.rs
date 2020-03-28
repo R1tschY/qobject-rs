@@ -1,5 +1,5 @@
 use crate::core::{QObject, QVariant};
-use crate::QBox;
+use crate::CppBox;
 use std::ffi::{c_void, CStr, CString};
 use std::os::raw::c_char;
 
@@ -9,6 +9,11 @@ cpp! {{
 }}
 
 opaque_struct!(QMetaObject);
+
+cpp_class!(
+    #[derive(Clone)]
+    pub unsafe struct Connection as "QMetaObject::Connection"
+);
 
 impl QMetaObject {
     pub fn class_name(&self) -> &CStr {
@@ -22,27 +27,21 @@ impl QMetaObject {
     }
 
     pub fn property_count(&self) -> i32 {
-        unsafe {
-            cpp!([self as "const QMetaObject*"] -> i32 as "int" {
-                return self->propertyCount();
-            })
-        }
+        cpp!(unsafe [self as "const QMetaObject*"] -> i32 as "int" {
+            return self->propertyCount();
+        })
     }
 
     pub fn property_offset(&self) -> i32 {
-        unsafe {
-            cpp!([self as "const QMetaObject*"] -> i32 as "int" {
-                return self->propertyOffset();
-            })
-        }
+        cpp!(unsafe [self as "const QMetaObject*"] -> i32 as "int" {
+            return self->propertyOffset();
+        })
     }
 
     pub fn property(&self, index: i32) -> QMetaProperty {
-        unsafe {
-            cpp!([self as "const QMetaObject*", index as "int"] -> QMetaProperty as "QMetaProperty" {
-                return self->property(index);
-            })
-        }
+        cpp!(unsafe [self as "const QMetaObject*", index as "int"] -> QMetaProperty as "QMetaProperty" {
+            return self->property(index);
+        })
     }
 
     pub fn own_properties(&self) -> PropertyIterator {
@@ -51,6 +50,22 @@ impl QMetaObject {
             index: self.property_offset(),
             count: self.property_count(),
         }
+    }
+}
+
+impl Connection {
+    /// Connection was successful established
+    pub fn is_valid(&self) -> bool {
+        cpp!(unsafe [self as "const QMetaObject::Connection*"] -> bool as "bool" {
+            return *self;
+        })
+    }
+
+    /// Calls QObject::disconnect with connection
+    pub fn disconnect(&self) -> bool {
+        cpp!(unsafe [self as "const QMetaObject::Connection*"] -> bool as "bool" {
+            return QObject::disconnect(*self);
+        })
     }
 }
 

@@ -1,7 +1,8 @@
-use qt5qml::core::{QMetaObject, QMetaProperty, QObjectRef, QVariant};
 use std::collections::HashMap;
 use std::ffi::{CStr, CString};
 use std::ptr;
+
+use qt5qml::core::{QMetaObject, QMetaProperty, QObjectRef, QVariant};
 
 include!(concat!(env!("OUT_DIR"), "/qffi_TestObject.rs"));
 
@@ -69,7 +70,7 @@ fn read_prop() {
     let obj = TestObject::new(ptr::null_mut());
     let props = get_props(obj.meta_object());
 
-    let value = props.get("prop_r").unwrap().read(obj.get_qobject());
+    let value = props.get("prop_r").unwrap().read(obj.as_qobject());
     assert_eq!(value, (QVariant::from("Hello Qt!")));
 }
 
@@ -78,7 +79,7 @@ fn write_only_prop_not_readable() {
     let obj = TestObject::new(ptr::null_mut());
     let props = get_props(obj.meta_object());
 
-    let value = props.get("prop_w").unwrap().read(obj.get_qobject());
+    let value = props.get("prop_w").unwrap().read(obj.as_qobject());
     assert_eq!(value, QVariant::from(""));
 }
 
@@ -90,9 +91,9 @@ fn written_value_can_be_read() {
     assert!(props
         .get("prop_rw")
         .unwrap()
-        .write(obj.get_qobject_mut(), &"test".into()));
+        .write(obj.as_qobject_mut(), &"test".into()));
     assert_eq!(
-        props.get("prop_rw").unwrap().read(obj.get_qobject()),
+        props.get("prop_rw").unwrap().read(obj.as_qobject()),
         "test".into()
     );
 }
@@ -105,7 +106,7 @@ fn read_only_prop_not_writeable() {
     assert!(!props
         .get("prop_r")
         .unwrap()
-        .write(obj.get_qobject_mut(), &"test".into()));
+        .write(obj.as_qobject_mut(), &"test".into()));
 }
 
 #[test]
@@ -116,5 +117,5 @@ fn write_with_wrong_type_not_accepted() {
     assert!(!props
         .get("prop_rw")
         .unwrap()
-        .write(obj.get_qobject_mut(), &1i64.into()));
+        .write(obj.as_qobject_mut(), &1i64.into()));
 }
