@@ -464,11 +464,10 @@ mod tests {
         assert!(code.contains("Q_PROPERTY(QString dummy READ dummy NOTIFY dummyChanged);"));
         assert!(code.contains("class Dummy : public QObject"));
         assert!(code.contains("QString dummy()"));
-        assert!(code.contains("void dummyChanged();"));
         assert!(code.contains("#include \"dummy.moc\""));
         assert!(code.contains("Qffi_Dummy_dummy(_d, &out__);"));
         assert!(code.contains("void Qffi_Dummy_dummy(void* self_, QString* out__);"));
-        assert!(code.contains("void* Qffi_Dummy_private_new(QObject* qobject);"));
+        assert!(code.contains("void* Qffi_Dummy_private_new(Dummy* qobject);"));
         assert!(code.contains("void Qffi_Dummy_private_delete(void* self_);"));
     }
 
@@ -481,8 +480,8 @@ mod tests {
                 .attach(&QObjectConfig::new("Test"))),
         );
         assert_eq!(
-            "    Qffi_Test_test(_d, std::forward<CppType0>(arg0), std::forward<CppType1>(arg1));",
-            def
+            "Qffi_Test_test(_d, std::forward<CppType0>(arg0), std::forward<CppType1>(arg1));",
+            def.trim()
         );
     }
 

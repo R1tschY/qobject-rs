@@ -47,7 +47,21 @@ macro_rules! impl_qobject_ref {
     };
 }
 
+#[macro_export]
+macro_rules! new_qobject_helper {
+    ($ty:ty, $cpp:expr) => {
+        impl $ty {
+            pub fn new(parent: Option<&mut QObject>) -> QBox<$ty> {
+                let parent = parent.map_or(ptr::null_mut(), |p| p as *mut QObject);
+                unsafe { QBox::from_raw($cpp) }
+            }
+        }
+    };
+}
+
 pub mod core;
+pub mod gui;
+pub mod qml;
 
 use crate::core::{QObject, QObjectRef};
 use std::ops::{Deref, DerefMut};
@@ -87,6 +101,7 @@ impl<T: Deletable> Drop for CppBox<T> {
 
 // QBox
 
+/// Box for `QObject`s
 pub struct QBox<T: QObjectRef>(ptr::NonNull<T>);
 
 impl<T: QObjectRef> QBox<T> {

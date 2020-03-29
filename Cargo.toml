@@ -5,7 +5,8 @@ members = [
     "tests/properties",
     "tests/signals",
     "tests/listmodel",
-    "examples/qobject"
+    "examples/qobject",
+    "examples/listmodel"
 ]
 
 #[profile.bench]

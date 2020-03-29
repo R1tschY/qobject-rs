@@ -137,6 +137,23 @@ impl<T: TypeRefTrait> TypeRefTrait for &T {
     }
 }
 
+impl<T: TypeRefTrait> TypeRefTrait for &mut T {
+    fn type_ref() -> TypeRef {
+        T::type_ref().with_mut_ref()
+    }
+}
+impl<T: TypeRefTrait> TypeRefTrait for *const T {
+    fn type_ref() -> TypeRef {
+        T::type_ref().with_const_ptr()
+    }
+}
+
+impl<T: TypeRefTrait> TypeRefTrait for *mut T {
+    fn type_ref() -> TypeRef {
+        T::type_ref().with_mut_ptr()
+    }
+}
+
 impl_type_ref_trait!(i8 => "int8_t", "cstdint");
 impl_type_ref_trait!(u8 => "uint8_t", "cstdint");
 impl_type_ref_trait!(i16 => "int16_t", "cstdint");
@@ -145,6 +162,8 @@ impl_type_ref_trait!(i32 => "int32_t", "cstdint");
 impl_type_ref_trait!(u32 => "uint32_t", "cstdint");
 impl_type_ref_trait!(i64 => "int64_t", "cstdint");
 impl_type_ref_trait!(u64 => "uint64_t", "cstdint");
+impl_type_ref_trait!(f32 => "float", "cstdint");
+impl_type_ref_trait!(f64 => "double", "cstdint");
 impl_type_ref_trait!(qt5qml::core::QModelIndex => "QModelIndex", "QModelIndex");
 impl_type_ref_trait!(qt5qml::core::QString => "QString", "QString");
 impl_type_ref_trait!(qt5qml::core::QByteArray => "QByteArray", "QByteArray");
