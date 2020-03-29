@@ -1,14 +1,7 @@
-use std::collections::HashMap;
-use std::ffi::{CStr, CString};
-use std::ptr;
-
-use qt5qml::core::{QMetaObject, QMetaProperty, QObjectRef, QVariant};
-
 include!(concat!(env!("OUT_DIR"), "/qffi_TestObject.rs"));
 
 pub struct TestObjectPrivate {
     qobject: *mut TestObject,
-    mydata: String,
     prop_rw: String,
     prop_w: String,
 }
@@ -17,7 +10,6 @@ impl TestObjectPrivate {
     pub fn new(qobject: *mut TestObject) -> Self {
         Self {
             qobject,
-            mydata: "".into(),
             prop_rw: "".to_string(),
             prop_w: "".to_string(),
         }
@@ -40,82 +32,91 @@ impl TestObjectPrivate {
     }
 }
 
-fn get_props(obj: &QMetaObject) -> HashMap<String, QMetaProperty> {
-    obj.own_properties()
-        .map(|e| (e.name().to_str().unwrap().to_owned(), e))
-        .collect()
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use core::ptr;
+    use qt5qml::core::{QMetaObject, QMetaProperty, QObjectRef, QVariant};
+    use std::collections::HashMap;
+    use std::ffi::CString;
 
-#[test]
-fn test_meta_object() {
-    let obj = TestObject::new(ptr::null_mut());
-    assert!(obj.inherits(&CString::new("QObject").unwrap()));
-    assert!(obj.inherits(&CString::new("TestObject").unwrap()));
-    assert!(!obj.inherits(&CString::new("QAbstractListModel").unwrap()));
+    fn get_props(obj: &QMetaObject) -> HashMap<String, QMetaProperty> {
+        obj.own_properties()
+            .map(|e| (e.name().to_str().unwrap().to_owned(), e))
+            .collect()
+    }
 
-    let meta = obj.meta_object();
-    assert_eq!(
-        CString::new("TestObject").unwrap().as_c_str(),
-        meta.class_name()
-    );
+    #[test]
+    fn test_meta_object() {
+        let obj = TestObject::new(ptr::null_mut());
+        assert!(obj.inherits(&CString::new("QObject").unwrap()));
+        assert!(obj.inherits(&CString::new("TestObject").unwrap()));
+        assert!(!obj.inherits(&CString::new("QAbstractListModel").unwrap()));
 
-    let props = get_props(meta);
-    assert!(props.contains_key("prop_rw"));
-    assert!(props.contains_key("prop_r"));
-    assert!(props.contains_key("prop_w"));
-}
+        let meta = obj.meta_object();
+        assert_eq!(
+            CString::new("TestObject").unwrap().as_c_str(),
+            meta.class_name()
+        );
 
-#[test]
-fn read_prop() {
-    let obj = TestObject::new(ptr::null_mut());
-    let props = get_props(obj.meta_object());
+        let props = get_props(meta);
+        assert!(props.contains_key("prop_rw"));
+        assert!(props.contains_key("prop_r"));
+        assert!(props.contains_key("prop_w"));
+    }
 
-    let value = props.get("prop_r").unwrap().read(obj.as_qobject());
-    assert_eq!(value, (QVariant::from("Hello Qt!")));
-}
+    #[test]
+    fn read_prop() {
+        let obj = TestObject::new(ptr::null_mut());
+        let props = get_props(obj.meta_object());
 
-#[test]
-fn write_only_prop_not_readable() {
-    let obj = TestObject::new(ptr::null_mut());
-    let props = get_props(obj.meta_object());
+        let value = props.get("prop_r").unwrap().read(obj.as_qobject());
+        assert_eq!(value, (QVariant::from("Hello Qt!")));
+    }
 
-    let value = props.get("prop_w").unwrap().read(obj.as_qobject());
-    assert_eq!(value, QVariant::from(""));
-}
+    #[test]
+    fn write_only_prop_not_readable() {
+        let obj = TestObject::new(ptr::null_mut());
+        let props = get_props(obj.meta_object());
 
-#[test]
-fn written_value_can_be_read() {
-    let mut obj = TestObject::new(ptr::null_mut());
-    let props = get_props(obj.meta_object());
+        let value = props.get("prop_w").unwrap().read(obj.as_qobject());
+        assert_eq!(value, QVariant::from(""));
+    }
 
-    assert!(props
-        .get("prop_rw")
-        .unwrap()
-        .write(obj.as_qobject_mut(), &"test".into()));
-    assert_eq!(
-        props.get("prop_rw").unwrap().read(obj.as_qobject()),
-        "test".into()
-    );
-}
+    #[test]
+    fn written_value_can_be_read() {
+        let mut obj = TestObject::new(ptr::null_mut());
+        let props = get_props(obj.meta_object());
 
-#[test]
-fn read_only_prop_not_writeable() {
-    let mut obj = TestObject::new(ptr::null_mut());
-    let props = get_props(obj.meta_object());
+        assert!(props
+            .get("prop_rw")
+            .unwrap()
+            .write(obj.as_qobject_mut(), &"test".into()));
+        assert_eq!(
+            props.get("prop_rw").unwrap().read(obj.as_qobject()),
+            "test".into()
+        );
+    }
 
-    assert!(!props
-        .get("prop_r")
-        .unwrap()
-        .write(obj.as_qobject_mut(), &"test".into()));
-}
+    #[test]
+    fn read_only_prop_not_writeable() {
+        let mut obj = TestObject::new(ptr::null_mut());
+        let props = get_props(obj.meta_object());
 
-#[test]
-fn write_with_wrong_type_not_accepted() {
-    let mut obj = TestObject::new(ptr::null_mut());
-    let props = get_props(obj.meta_object());
+        assert!(!props
+            .get("prop_r")
+            .unwrap()
+            .write(obj.as_qobject_mut(), &"test".into()));
+    }
 
-    assert!(!props
-        .get("prop_rw")
-        .unwrap()
-        .write(obj.as_qobject_mut(), &1i64.into()));
+    #[test]
+    fn write_with_wrong_type_not_accepted() {
+        let mut obj = TestObject::new(ptr::null_mut());
+        let props = get_props(obj.meta_object());
+
+        assert!(!props
+            .get("prop_rw")
+            .unwrap()
+            .write(obj.as_qobject_mut(), &1i64.into()));
+    }
 }

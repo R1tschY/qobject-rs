@@ -1,4 +1,4 @@
-use qt5qml::core::{QString, QVariant};
+use qt5qml::core::QVariant;
 use std::convert::TryFrom;
 
 #[test]

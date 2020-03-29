@@ -1,5 +1,5 @@
 use std::fmt;
-use std::fmt::{Debug, Display, Error, Formatter};
+use std::fmt::{Debug, Display};
 
 cpp! {{
     #include <QString>

@@ -1,7 +1,7 @@
 use crate::core::{Connection, QMetaObject};
-use crate::{CppBox, QBox};
+use crate::QBox;
 use std::borrow::Cow;
-use std::ffi::{CStr, CString};
+use std::ffi::CStr;
 use std::os::raw::c_char;
 use std::ptr;
 

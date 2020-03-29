@@ -1,7 +1,6 @@
 use crate::core::{QByteArray, QString};
 use std::convert::TryFrom;
 use std::fmt;
-use std::fmt::{Debug, Error, Formatter};
 
 cpp! {{
     #include <QVariant>

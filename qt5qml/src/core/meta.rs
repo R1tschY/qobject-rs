@@ -1,6 +1,5 @@
 use crate::core::{QObject, QVariant};
-use crate::CppBox;
-use std::ffi::{c_void, CStr, CString};
+use std::ffi::{c_void, CStr};
 use std::os::raw::c_char;
 
 cpp! {{
@@ -221,7 +220,7 @@ impl QMetaProperty {
         })
     }
 
-    pub unsafe fn resetOnGadget(&self, gadget: &mut c_void) -> bool {
+    pub unsafe fn reset_on_gadget(&self, gadget: &mut c_void) -> bool {
         cpp!(unsafe [self as "const QMetaProperty*", gadget as "void*"] -> bool as "bool" {
             return self->resetOnGadget(gadget);
         })

@@ -1,5 +1,5 @@
-use crate::core::{QObject, QObjectRef, Slot};
-use crate::{CppBox, QBox};
+use crate::core::{QObject, Slot};
+use crate::QBox;
 use std::ptr;
 use std::time::Duration;
 

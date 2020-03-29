@@ -413,7 +413,6 @@ impl {0} {{
                 format!(
                     r#"
     pub(crate) unsafe fn {1}({2}) {{
-        use qt5qml::core::QObjectRef;
         Qffi_{0}_{1}({3});
     }}
 "#,

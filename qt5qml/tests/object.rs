@@ -1,5 +1,4 @@
 use qt5qml::core::{ConnectionType, QObject, QObjectRef, QTimer};
-use std::ptr;
 use std::time::Duration;
 
 #[test]

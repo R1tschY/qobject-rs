@@ -1,8 +1,3 @@
-use qt5qml::core::{QMetaObject, QMetaProperty, QObjectRef, QVariant};
-use std::collections::HashMap;
-use std::ffi::{CStr, CString};
-use std::ptr;
-
 include!(concat!(env!("OUT_DIR"), "/qffi_TestObject.rs"));
 
 pub struct TestObjectPrivate {
