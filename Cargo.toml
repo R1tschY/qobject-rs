@@ -4,6 +4,7 @@ members = [
     "qt5qml",
     "tests/properties",
     "tests/signals",
+    "tests/listmodel",
     "examples/qobject"
 ]
 

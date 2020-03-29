@@ -60,6 +60,10 @@ impl TypeRef {
         }
     }
 
+    pub fn primitive<T: TypeRefTrait>() -> Self {
+        T::type_ref()
+    }
+
     pub fn with_mut_ptr(&self) -> Self {
         Self {
             cpp: format!("{}*", self.cpp),
@@ -108,6 +112,43 @@ impl TypeRef {
         &self.include
     }
 }
+
+pub trait TypeRefTrait {
+    fn type_ref() -> TypeRef;
+}
+
+macro_rules! impl_type_ref_trait {
+    ($rust:ty => $cpp:expr, $include:expr) => {
+        impl TypeRefTrait for $rust {
+            fn type_ref() -> TypeRef {
+                TypeRef::new(
+                    $cpp.into(),
+                    stringify!($rust).into(),
+                    Some(Include::System($include.into())),
+                )
+            }
+        }
+    };
+}
+
+impl<T: TypeRefTrait> TypeRefTrait for &T {
+    fn type_ref() -> TypeRef {
+        T::type_ref().with_const_ref()
+    }
+}
+
+impl_type_ref_trait!(i8 => "int8_t", "cstdint");
+impl_type_ref_trait!(u8 => "uint8_t", "cstdint");
+impl_type_ref_trait!(i16 => "int16_t", "cstdint");
+impl_type_ref_trait!(u16 => "uint16_t", "cstdint");
+impl_type_ref_trait!(i32 => "int32_t", "cstdint");
+impl_type_ref_trait!(u32 => "uint32_t", "cstdint");
+impl_type_ref_trait!(i64 => "int64_t", "cstdint");
+impl_type_ref_trait!(u64 => "uint64_t", "cstdint");
+impl_type_ref_trait!(qt5qml::core::QModelIndex => "QModelIndex", "QModelIndex");
+impl_type_ref_trait!(qt5qml::core::QString => "QString", "QString");
+impl_type_ref_trait!(qt5qml::core::QByteArray => "QByteArray", "QByteArray");
+impl_type_ref_trait!(qt5qml::core::QVariant => "QVariant", "QVariant");
 
 #[derive(Clone, Debug)]
 pub struct QObjectProp {
@@ -235,12 +276,22 @@ impl QObjectMethod {
         }
     }
 
-    pub fn arg(mut self, name: &str, type_ref: &TypeRef) -> Self {
+    pub fn arg<T: TypeRefTrait>(mut self, name: &str) -> Self {
+        self.args.push((name.into(), T::type_ref()));
+        self
+    }
+
+    pub fn arg_with_type(mut self, name: &str, type_ref: &TypeRef) -> Self {
         self.args.push((name.into(), type_ref.clone()));
         self
     }
 
-    pub fn ret(mut self, type_ref: &TypeRef) -> Self {
+    pub fn ret<T: TypeRefTrait>(mut self) -> Self {
+        self.rtype = Some(T::type_ref());
+        self
+    }
+
+    pub fn ret_type(mut self, type_ref: &TypeRef) -> Self {
         self.rtype = Some(type_ref.clone());
         self
     }

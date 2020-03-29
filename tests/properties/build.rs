@@ -1,5 +1,6 @@
 use qobject_compiler::moc::MocConfig;
 use qobject_compiler::{CcBuild, QObjectBuild, QObjectMethod, QObjectProp, TypeRef};
+use qt5qml::core::QString;
 
 fn main() {
     let config = pkg_config::probe_library("Qt5Core").unwrap();
@@ -19,13 +20,9 @@ fn main() {
         )
         .property(&QObjectProp::new(&TypeRef::qstring(), "prop_r").read("prop_r"))
         .property(&QObjectProp::new(&TypeRef::qstring(), "prop_w").write("set_prop_w"))
-        .method(&QObjectMethod::new("prop_r").ret(&TypeRef::qstring()))
-        .method(&QObjectMethod::new("prop_rw").ret(&TypeRef::qstring()))
-        .method(
-            &QObjectMethod::new("set_prop_rw").arg("value", &TypeRef::qstring().with_const_ref()),
-        )
-        .method(
-            &QObjectMethod::new("set_prop_w").arg("value", &TypeRef::qstring().with_const_ref()),
-        )
+        .method(&QObjectMethod::new("prop_r").ret::<QString>())
+        .method(&QObjectMethod::new("prop_rw").ret::<QString>())
+        .method(&QObjectMethod::new("set_prop_rw").arg::<&QString>("value"))
+        .method(&QObjectMethod::new("set_prop_w").arg::<&QString>("value"))
         .build(&cpp, &moc);
 }

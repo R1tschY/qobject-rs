@@ -15,6 +15,7 @@ pub mod ffi;
 pub mod generate;
 pub mod moc;
 pub mod qobject;
+mod utils;
 
 pub mod build;
 

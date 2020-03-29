@@ -1,5 +1,6 @@
 use crate::ffi::{FfiBridge, FfiFunction, ImplCode};
 use crate::qobject::{Include, QObjectConfig, QObjectMethod, QObjectProp, QObjectSignal, TypeRef};
+use crate::utils::to_snake_case;
 use std::borrow::Cow;
 use std::collections::HashSet;
 use std::iter::FromIterator;
@@ -235,7 +236,7 @@ impl GenerateCppCode for QObjectConfig {
                     ""
                 },
                 &self.name,
-                &meth.name,
+                to_snake_case(&meth.name),
                 params.join(", ")
             );
             ffi.rust_function(FfiFunction::new_complete(
@@ -322,8 +323,9 @@ impl GenerateCppCode for QObjectConfig {
         lines.push("public:".into());
         lines.push(
             format!(
-                "  {0}(QObject* parent = nullptr) : QObject(parent) {{ _d = Qffi_{0}_private_new(this); }}",
-                &self.name
+                "  {0}(QObject* parent = nullptr) : {1}(parent) {{ _d = Qffi_{0}_private_new(this); }}",
+                &self.name,
+                self.base_class.cpp_type()
             )
             .into(),
         );
@@ -433,6 +435,7 @@ impl {0} {{
 #[cfg(test)]
 mod tests {
     use super::*;
+    use qt5qml::core::QString;
 
     #[test]
     fn generate_simple_class() {
@@ -448,7 +451,7 @@ mod tests {
             ))
             .method(
                 QObjectMethod::new("dummy")
-                    .ret(&TypeRef::qstring())
+                    .ret::<QString>()
                     .attach(&obj_clone),
             );
         let (code, _) = generate("dummy.moc", &[&obj]);
@@ -473,8 +476,8 @@ mod tests {
     fn test_cpp_impl() {
         let def = generate_ffi_impl(
             &(QObjectMethod::new("test")
-                .arg("arg0", &TypeRef::qt_core_object("CppType0"))
-                .arg("arg1", &TypeRef::qt_core_object("CppType1"))
+                .arg_with_type("arg0", &TypeRef::qt_core_object("CppType0"))
+                .arg_with_type("arg1", &TypeRef::qt_core_object("CppType1"))
                 .attach(&QObjectConfig::new("Test"))),
         );
         assert_eq!(
@@ -487,8 +490,8 @@ mod tests {
     fn test_cpp_impl_with_return() {
         let def = generate_ffi_impl(
             &QObjectMethod::new("test")
-                .arg("arg0", &TypeRef::qt_core_object("CppType0"))
-                .ret(&TypeRef::qt_core_object("RetCppType"))
+                .arg_with_type("arg0", &TypeRef::qt_core_object("CppType0"))
+                .ret_type(&TypeRef::qt_core_object("RetCppType"))
                 .attach(&QObjectConfig::new("Test")),
         );
         assert_eq!(
