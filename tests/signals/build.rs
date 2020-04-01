@@ -13,5 +13,6 @@ fn main() {
 
     QObjectBuild::new("TestObject")
         .signal(&QObjectSignal::new("signal0"))
+        .qml(false)
         .build(&cpp, &moc);
 }

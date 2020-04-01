@@ -113,10 +113,12 @@ mod tests {
     fn write_with_wrong_type_not_accepted() {
         let mut obj = TestObject::new(ptr::null_mut());
         let props = get_props(obj.meta_object());
+        let value: QVariant = 1i64.into();
+        dbg!(&value);
 
         assert!(!props
             .get("prop_rw")
             .unwrap()
-            .write(obj.as_qobject_mut(), &1i64.into()));
+            .write(obj.as_qobject_mut(), &value));
     }
 }

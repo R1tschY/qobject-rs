@@ -1,9 +1,12 @@
+use std::borrow::Cow;
+use std::collections::HashSet;
+use std::ffi::CStr;
+use std::iter::FromIterator;
+use std::os::raw::c_char;
+
 use crate::ffi::{FfiBridge, FfiFunction, ImplCode};
 use crate::qobject::{Include, QObjectConfig, QObjectMethod, QObjectProp, QObjectSignal, TypeRef};
 use crate::utils::to_snake_case;
-use std::borrow::Cow;
-use std::collections::HashSet;
-use std::iter::FromIterator;
 
 pub trait Dependent {
     fn dependencies(&self, includes: &mut HashSet<Include>);
@@ -45,6 +48,9 @@ impl Dependent for QObjectConfig {
             includes.insert(include.clone());
         }
         includes.insert(Include::System("utility".into())); // required for std::forward
+        if self.qml {
+            includes.insert(Include::System("QQmlEngine".into()));
+        }
     }
 }
 
@@ -298,6 +304,21 @@ impl GenerateCppCode for QObjectConfig {
                 Some(self.name.clone()),
             ));
         }
+
+        if self.qml {
+            ffi.cpp_function(
+                FfiFunction::new(&format!("Qffi_{}_registerType", self.name))
+                    .arg::<&CStr>("uri")
+                    .arg::<i32>("version_major")
+                    .arg::<i32>("version_minor")
+                    .arg::<&CStr>("qml_name")
+                    .ret::<i32>()
+                    .cpp_impl(&format!(
+                        "*out__ = qmlRegisterType<{}>(uri, version_major, version_minor, qml_name);",
+                        self.name
+                    )),
+            );
+        }
     }
 
     fn generate_forward_definitions(&self, lines: &mut Vec<Cow<str>>) {
@@ -327,7 +348,7 @@ impl GenerateCppCode for QObjectConfig {
                 &self.name,
                 self.base_class.cpp_type()
             )
-            .into(),
+                .into(),
         );
         lines.push(format!("  ~{0}() {{ Qffi_{0}_private_delete(_d); }}", &self.name).into());
         lines.push("".into());
@@ -426,6 +447,24 @@ impl {0} {{
                 .into(),
             );
         }
+
+        lines.push("".into());
+        if obj.qml {
+            lines.push(
+                format!(
+                    r#"
+    pub(crate) fn register_type(uri: &std::ffi::CStr, version_major: i32, version_minor: i32, qml_name: &std::ffi::CStr) -> i32 {{
+        let mut out__: i32 = 0;
+        unsafe {{ Qffi_{0}_registerType(uri.as_ptr(), version_major, version_minor, qml_name.as_ptr(), &mut out__); }}
+        return out__;
+    }}
+"#,
+                    obj.name,
+                )
+                    .into(),
+            );
+        }
+
         lines.push("}".into());
     }
 
@@ -434,8 +473,9 @@ impl {0} {{
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use qt5qml::core::QString;
+
+    use super::*;
 
     #[test]
     fn generate_simple_class() {

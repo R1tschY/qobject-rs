@@ -25,7 +25,8 @@ fn main() {
         moc.include_path(include);
     }
 
-    let obj = QObjectConfig::new("MyQObject");
+    let mut obj = QObjectConfig::new("MyQObject");
+    obj.qml(false);
     build(&cpp, &moc, &path, &obj).unwrap();
 
     assert!(path.exists());

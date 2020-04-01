@@ -24,5 +24,6 @@ fn main() {
         .method(&QObjectMethod::new("prop_rw").ret::<QString>())
         .method(&QObjectMethod::new("set_prop_rw").arg::<&QString>("value"))
         .method(&QObjectMethod::new("set_prop_w").arg::<&QString>("value"))
+        .qml(false)
         .build(&cpp, &moc);
 }

@@ -1,4 +1,4 @@
-use crate::qobject::TypeRef;
+use crate::qobject::{TypeRef, TypeRefTrait};
 use std::collections::HashSet;
 
 pub(crate) enum ImplCode {
@@ -42,27 +42,37 @@ impl FfiFunction {
         }
     }
 
-    pub fn arg(&mut self, name: &str, ty: TypeRef) -> &mut Self {
+    pub fn arg<T: TypeRefTrait>(mut self, name: &str) -> Self {
+        self.args.push((name.into(), T::type_ref()));
+        self
+    }
+
+    pub fn arg_with_type(mut self, name: &str, ty: TypeRef) -> Self {
         self.args.push((name.into(), ty));
         self
     }
 
-    pub fn rust_impl(&mut self, body: &str) -> &mut Self {
+    pub fn rust_impl(mut self, body: &str) -> Self {
         self.body = ImplCode::Rust(body.into());
         self
     }
 
-    pub fn cpp_impl(&mut self, body: &str) -> &mut Self {
+    pub fn cpp_impl(mut self, body: &str) -> Self {
         self.body = ImplCode::Cpp(body.into());
         self
     }
 
-    pub fn ret(&mut self, ty: TypeRef) -> &mut Self {
+    pub fn ret<T: TypeRefTrait>(mut self) -> Self {
+        self.rtype = Some(T::type_ref());
+        self
+    }
+
+    pub fn ret_type(mut self, ty: TypeRef) -> Self {
         self.rtype = Some(ty);
         self
     }
 
-    pub fn friend_class(&mut self, cls: &str) -> &mut Self {
+    pub fn friend_class(mut self, cls: &str) -> Self {
         self.friend_class = Some(cls.into());
         self
     }
@@ -227,7 +237,7 @@ mod tests {
     #[test]
     fn test_cpp_def_one_arg() {
         let def = &FfiFunction::new("test")
-            .arg("arg0", TypeRef::qt_core_object("CppType"))
+            .arg_with_type("arg0", TypeRef::qt_core_object("CppType"))
             .generate_cpp_def();
         assert_eq!("extern \"C\" void test(CppType arg0);", def);
     }
@@ -235,8 +245,8 @@ mod tests {
     #[test]
     fn test_cpp_def_many_args() {
         let def = &FfiFunction::new("test")
-            .arg("arg0", TypeRef::qt_core_object("CppType0"))
-            .arg("arg1", TypeRef::qt_core_object("CppType1"))
+            .arg_with_type("arg0", TypeRef::qt_core_object("CppType0"))
+            .arg_with_type("arg1", TypeRef::qt_core_object("CppType1"))
             .generate_cpp_def();
         assert_eq!(def, "extern \"C\" void test(CppType0 arg0, CppType1 arg1);");
     }
@@ -244,9 +254,9 @@ mod tests {
     #[test]
     fn test_cpp_def_with_return() {
         let def = &FfiFunction::new("test")
-            .arg("arg0", TypeRef::qt_core_object("CppType0"))
-            .arg("arg1", TypeRef::qt_core_object("CppType1"))
-            .ret(TypeRef::qt_core_object("RetCppType"))
+            .arg_with_type("arg0", TypeRef::qt_core_object("CppType0"))
+            .arg_with_type("arg1", TypeRef::qt_core_object("CppType1"))
+            .ret_type(TypeRef::qt_core_object("RetCppType"))
             .generate_cpp_def();
         assert_eq!(
             "extern \"C\" void test(CppType0 arg0, CppType1 arg1, RetCppType* out__);",

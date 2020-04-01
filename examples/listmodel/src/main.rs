@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate qt5qml;
 use qt5qml::core::{QCoreApplicationFactory, QModelIndex, QVariant};
 use qt5qml::gui::QGuiApplication;
 use qt5qml::qml::QQmlApplicationEngine;
@@ -15,17 +17,20 @@ impl TestObjectPrivate {
     }
 
     pub fn row_count(&self, parent: &QModelIndex) -> i32 {
-        0
+        1
     }
 
     pub fn data(&self, parent: &QModelIndex, role: i32) -> QVariant {
-        QVariant::new()
+        "123".into()
     }
 }
 
 fn main() {
     let app = QGuiApplication::new_from_env_args();
     let mut engine = QQmlApplicationEngine::new(None);
+
+    TestObject::register_type(cstr!("qobject_rs.test"), 1, 0, cstr!("TestObject"));
+
     engine.load("examples/listmodel/src/main.qml");
     if engine.root_objects().is_empty() {
         exit(-1);

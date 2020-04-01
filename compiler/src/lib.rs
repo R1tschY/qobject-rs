@@ -50,6 +50,11 @@ impl QObjectBuild {
         self
     }
 
+    pub fn qml(&mut self, value: bool) -> &mut Self {
+        self.obj.qml(value);
+        self
+    }
+
     pub fn build(&self, cc: &CcBuild, moc: &MocConfig) {
         // TODO: move logic out of here
         let out_dir = env::var_os("OUT_DIR").expect("OUT_DIR environment variable not set");

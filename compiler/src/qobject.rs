@@ -1,3 +1,5 @@
+use std::ffi::CStr;
+
 #[derive(Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Debug)]
 pub enum Include {
     System(String),
@@ -129,6 +131,13 @@ macro_rules! impl_type_ref_trait {
             }
         }
     };
+    ($rust:ty => $cpp:expr) => {
+        impl TypeRefTrait for $rust {
+            fn type_ref() -> TypeRef {
+                TypeRef::new($cpp.into(), stringify!($rust).into(), None)
+            }
+        }
+    };
 }
 
 impl<T: TypeRefTrait> TypeRefTrait for &T {
@@ -162,12 +171,29 @@ impl_type_ref_trait!(i32 => "int32_t", "cstdint");
 impl_type_ref_trait!(u32 => "uint32_t", "cstdint");
 impl_type_ref_trait!(i64 => "int64_t", "cstdint");
 impl_type_ref_trait!(u64 => "uint64_t", "cstdint");
-impl_type_ref_trait!(f32 => "float", "cstdint");
-impl_type_ref_trait!(f64 => "double", "cstdint");
+impl_type_ref_trait!(f32 => "float");
+impl_type_ref_trait!(f64 => "double");
+impl_type_ref_trait!(std::os::raw::c_void => "void");
 impl_type_ref_trait!(qt5qml::core::QModelIndex => "QModelIndex", "QModelIndex");
 impl_type_ref_trait!(qt5qml::core::QString => "QString", "QString");
 impl_type_ref_trait!(qt5qml::core::QByteArray => "QByteArray", "QByteArray");
 impl_type_ref_trait!(qt5qml::core::QVariant => "QVariant", "QVariant");
+
+impl TypeRefTrait for &CStr {
+    fn type_ref() -> TypeRef {
+        TypeRef::new(
+            "const char*".into(),
+            "*const std::os::raw::c_char".into(),
+            None,
+        )
+    }
+}
+
+impl TypeRefTrait for &mut CStr {
+    fn type_ref() -> TypeRef {
+        TypeRef::new("char*".into(), "*mut std::os::raw::c_char".into(), None)
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct QObjectProp {
@@ -349,6 +375,7 @@ pub struct QObjectConfig {
     pub(crate) properties: Vec<QObjectProp>,
     pub(crate) methods: Vec<QObjectMethod>,
     pub(crate) signals: Vec<QObjectSignal>,
+    pub(crate) qml: bool,
 }
 
 impl QObjectConfig {
@@ -359,6 +386,7 @@ impl QObjectConfig {
             properties: vec![],
             methods: vec![],
             signals: vec![],
+            qml: true,
         }
     }
 
@@ -379,6 +407,12 @@ impl QObjectConfig {
 
     pub fn signal<T: Into<QObjectSignal>>(&mut self, signal: T) -> &mut Self {
         self.signals.push(signal.into());
+        self
+    }
+
+    /// Generate qmlRegisterType function
+    pub fn qml(&mut self, value: bool) -> &mut Self {
+        self.qml = value;
         self
     }
 }

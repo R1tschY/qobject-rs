@@ -38,5 +38,6 @@ fn main() {
         //         .arg::<i32>("role")
         //         .ret::<QHash_int_QByteArray>(),
         // )
+        .qml(false)
         .build(&cpp, &moc);
 }

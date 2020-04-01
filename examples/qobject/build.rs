@@ -13,5 +13,6 @@ fn main() {
 
     QObjectBuild::new("MyQObject")
         .property(&QObjectProp::new(&TypeRef::qstring(), "my_name"))
+        .qml(false)
         .build(&cpp, &moc);
 }

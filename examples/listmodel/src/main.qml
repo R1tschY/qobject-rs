@@ -1,5 +1,6 @@
 import QtQuick 2.9
 import QtQuick.Controls 2.2
+import qobject_rs.test 1.0
 
 ApplicationWindow {
     visible: true
@@ -12,9 +13,9 @@ ApplicationWindow {
 
         ListView {
             width: parent.width
-            model: 20
+            model: TestObject { }
             delegate: ItemDelegate {
-                text: "Item " + (index + 1)
+                text: "Item " + (index + 1) + " " + display
                 width: parent.width
             }
         }
