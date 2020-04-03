@@ -1,0 +1,32 @@
+// GENERATED -- DO NOT EDIT!!
+
+cpp! {{ '{{' }}
+    {% for item in includes -%}
+        {{ '#include' }} <{{ item }}>
+    {% endfor %}
+{{ '}}' }}
+
+
+{% for item in types -%}
+cpp_class!(
+    #[derive(Clone, PartialEq, Eq)]
+    pub unsafe struct {{ item.name }} as "QList<{{ item.cpp }}>"
+);
+
+impl {{ item.name }} {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn len(&self) -> i32 {
+        cpp!(unsafe [self as "const QList<{{ item.cpp }}>*"] -> i32 as "int" {
+            return self->size();
+        })
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+}
+
+{% endfor %}

@@ -1,9 +1,10 @@
-use crate::core::QObjectRef;
-use crate::{CppBox, Deletable, QBox};
 use std::ffi::CString;
 use std::ops::{Deref, DerefMut};
 use std::os::raw::{c_char, c_int};
 use std::pin::Pin;
+
+use crate::core::QObjectRef;
+use crate::{CppBox, Deletable, QBox};
 
 cpp! {{
     #include <QCoreApplication>
@@ -24,7 +25,7 @@ fn pin_vec<T>(input: Vec<T>) -> Pin<Vec<T>> {
     unsafe { Pin::new_unchecked(input) }
 }
 
-pub trait QCoreApplicationFactory: QObjectRef {
+pub trait QApplicationFactory: QObjectRef {
     unsafe fn create_app(argc: *mut c_int, argv: *const *const c_char) -> *mut Self;
 
     fn new_from_env_args() -> QApplicationHolder<Self>
@@ -52,7 +53,7 @@ pub trait QCoreApplicationFactory: QObjectRef {
     }
 }
 
-impl QCoreApplicationFactory for QCoreApplication {
+impl QApplicationFactory for QCoreApplication {
     unsafe fn create_app(argc: *mut i32, argv: *const *const i8) -> *mut QCoreApplication {
         cpp!([argc as "int*", argv as "char**"] -> *mut QCoreApplication as "QCoreApplication*" {
             return new QCoreApplication(*argc, argv);

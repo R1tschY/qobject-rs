@@ -178,6 +178,7 @@ impl_type_ref_trait!(qt5qml::core::QModelIndex => "QModelIndex", "QModelIndex");
 impl_type_ref_trait!(qt5qml::core::QString => "QString", "QString");
 impl_type_ref_trait!(qt5qml::core::QByteArray => "QByteArray", "QByteArray");
 impl_type_ref_trait!(qt5qml::core::QVariant => "QVariant", "QVariant");
+impl_type_ref_trait!(qt5qml::core::QHashIntQByteArray => "QHash<int, QByteArray>", "QHash");
 
 impl TypeRefTrait for &CStr {
     fn type_ref() -> TypeRef {

@@ -15,7 +15,7 @@ ApplicationWindow {
             width: parent.width
             model: TestObject { }
             delegate: ItemDelegate {
-                text: "Item " + (index + 1) + " " + display
+                text: name + ": " + description
                 width: parent.width
             }
         }

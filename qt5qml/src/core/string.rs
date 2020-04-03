@@ -1,3 +1,4 @@
+use std::ffi::{CStr, CString};
 use std::fmt;
 use std::fmt::{Debug, Display};
 
@@ -144,5 +145,48 @@ impl QByteArray {
             );
             std::slice::from_raw_parts(data, len)
         }
+    }
+
+    pub fn from_bytes(bytes: &[u8]) -> Self {
+        let data: *const u8 = bytes.as_ptr();
+        let len: usize = bytes.len();
+        cpp!(unsafe [data as "const char*", len as "size_t"] -> QByteArray as "QByteArray" {
+            return QByteArray(data, len);
+        })
+    }
+}
+
+impl<'a> From<&'a CStr> for QByteArray {
+    #[inline]
+    fn from(value: &'a CStr) -> Self {
+        Self::from_bytes(value.to_bytes())
+    }
+}
+
+impl<'a> From<&'a str> for QByteArray {
+    #[inline]
+    fn from(value: &'a str) -> Self {
+        Self::from_bytes(value.as_bytes())
+    }
+}
+
+impl<'a> From<CString> for QByteArray {
+    #[inline]
+    fn from(value: CString) -> Self {
+        Self::from_bytes(value.to_bytes())
+    }
+}
+
+impl<'a> From<String> for QByteArray {
+    #[inline]
+    fn from(value: String) -> Self {
+        Self::from_bytes(value.as_bytes())
+    }
+}
+
+impl<'a> From<&'a [u8]> for QByteArray {
+    #[inline]
+    fn from(value: &'a [u8]) -> Self {
+        Self::from_bytes(value)
     }
 }

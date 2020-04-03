@@ -1,7 +1,7 @@
 use qobject_compiler::moc::MocConfig;
 use qobject_compiler::qobject::TypeRefTrait;
 use qobject_compiler::{CcBuild, QObjectBuild, QObjectMethod, QObjectProp, TypeRef};
-use qt5qml::core::{QModelIndex, QVariant};
+use qt5qml::core::{QHashIntQByteArray, QModelIndex, QVariant};
 
 fn main() {
     let core = pkg_config::probe_library("Qt5Core").unwrap();
@@ -35,13 +35,11 @@ fn main() {
                 .arg::<i32>("role")
                 .ret::<QVariant>(),
         )
-        // .method(
-        //     &QObjectMethod::new("roleNames")
-        //         .const_()
-        //         .override_()
-        //         .arg::<QModelIndex>("index")
-        //         .arg::<i32>("role")
-        //         .ret::<QHash_int_QByteArray>(),
-        // )
+        .method(
+            &QObjectMethod::new("roleNames")
+                .const_()
+                .override_()
+                .ret::<QHashIntQByteArray>(),
+        )
         .build(&cpp, &moc);
 }

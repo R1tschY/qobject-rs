@@ -93,3 +93,5 @@ impl QModelIndex {
         }
     }*/
 }
+
+pub const QT_USER_ROLE: i32 = 0x0100;

@@ -4,6 +4,7 @@ cpp! {{
 
 mod application;
 mod debug;
+mod hash;
 mod itemmodel;
 mod list;
 mod meta;
@@ -14,6 +15,7 @@ mod url;
 mod variant;
 
 pub use self::application::*;
+pub use self::hash::*;
 pub use self::itemmodel::*;
 pub use self::list::*;
 pub use self::meta::*;
