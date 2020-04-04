@@ -49,7 +49,7 @@ impl Dependent for QObjectConfig {
         }
         includes.insert(Include::System("utility".into())); // required for std::forward
         if self.qml {
-            includes.insert(Include::System("QQmlEngine".into()));
+            includes.insert(Include::System("QtQml".into()));
         }
     }
 }
