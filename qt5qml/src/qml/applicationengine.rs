@@ -35,7 +35,7 @@ impl QQmlApplicationEngine {
     }
 
     pub fn root_objects(&self) -> QObjectList {
-        cpp!(unsafe [self as "const QQmlApplicationEngine*"] -> QObjectList as "QList<QObject*>" {
+        cpp!(unsafe [self as "QQmlApplicationEngine*"] -> QObjectList as "QList<QObject*>" {
             return self->rootObjects();
         })
     }

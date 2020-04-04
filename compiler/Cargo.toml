@@ -11,7 +11,7 @@ cc = "^1.0.50"
 pkg-config = "^0.3.17"
 lazy_static = "1.4.0"
 qt5qml = { path = "../qt5qml" }
-regex = "1"
+regex = { version = "1", default-features = false }
 
 [dev-dependencies]
 tempfile = "3.1.0"

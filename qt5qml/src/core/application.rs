@@ -54,7 +54,7 @@ pub trait QApplicationFactory: QObjectRef {
 }
 
 impl QApplicationFactory for QCoreApplication {
-    unsafe fn create_app(argc: *mut i32, argv: *const *const i8) -> *mut QCoreApplication {
+    unsafe fn create_app(argc: *mut i32, argv: *const *const c_char) -> *mut QCoreApplication {
         cpp!([argc as "int*", argv as "char**"] -> *mut QCoreApplication as "QCoreApplication*" {
             return new QCoreApplication(*argc, argv);
         })

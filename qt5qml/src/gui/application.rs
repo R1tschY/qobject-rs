@@ -20,7 +20,7 @@ impl QGuiApplication {
 }
 
 impl QApplicationFactory for QGuiApplication {
-    unsafe fn create_app(argc: *mut i32, argv: *const *const i8) -> *mut QGuiApplication {
+    unsafe fn create_app(argc: *mut i32, argv: *const *const c_char) -> *mut QGuiApplication {
         cpp!([argc as "int*", argv as "char**"] -> *mut QGuiApplication as "QGuiApplication*" {
             return new QGuiApplication(*argc, argv);
         })
