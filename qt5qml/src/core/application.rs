@@ -25,10 +25,15 @@ fn pin_vec<T>(input: Vec<T>) -> Pin<Vec<T>> {
     unsafe { Pin::new_unchecked(input) }
 }
 
-pub trait QApplicationFactory: QObjectRef {
-    unsafe fn create_app(argc: *mut c_int, argv: *const *const c_char) -> *mut Self;
+pub trait QApplicationFactory {
+    type ApplicationType: QObjectRef;
 
-    fn new_from_env_args() -> QApplicationHolder<Self>
+    unsafe fn create_app(
+        argc: *mut c_int,
+        argv: *const *const c_char,
+    ) -> *mut Self::ApplicationType;
+
+    fn new_from_env_args() -> QApplicationHolder<Self::ApplicationType>
     where
         Self: std::marker::Sized,
     {
@@ -54,6 +59,8 @@ pub trait QApplicationFactory: QObjectRef {
 }
 
 impl QApplicationFactory for QCoreApplication {
+    type ApplicationType = Self;
+
     unsafe fn create_app(argc: *mut i32, argv: *const *const c_char) -> *mut QCoreApplication {
         cpp!([argc as "int*", argv as "char**"] -> *mut QCoreApplication as "QCoreApplication*" {
             return new QCoreApplication(*argc, argv);
