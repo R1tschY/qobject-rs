@@ -421,7 +421,7 @@ impl QObjectConfig {
     }
 
     pub fn slot<T: Into<QObjectMethod>>(&mut self, slot: T) -> &mut Self {
-        self.slots.push(slot.into());
+        self.slots.push(slot.into().attach(self));
         self
     }
 

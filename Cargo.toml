@@ -5,6 +5,7 @@ members = [
     "tests/properties",
     "tests/signals",
     "tests/listmodel",
+    "tests/slots",
     "examples/qobject",
     "examples/listmodel"
 ]

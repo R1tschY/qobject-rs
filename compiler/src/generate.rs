@@ -230,7 +230,7 @@ fn generate_cpp(moc_name: &str, objects: &[&QObjectConfig], ffi: &FfiBridge) -> 
 
 impl GenerateCppCode for QObjectConfig {
     fn fill_ffi_functions(&self, ffi: &mut FfiBridge) {
-        for meth in &self.methods {
+        for meth in self.methods.iter().chain(self.slots.iter()) {
             let mut args = meth.args.clone();
             args.insert(0, ("self_".into(), TypeRef::void_mut_ptr()));
 
@@ -563,5 +563,19 @@ mod tests {
 
         assert!(code.contains("friend void Qffi_Dummy_testSignal(Dummy* self_, QObject* arg0)"));
         assert!(code.contains("Q_EMIT self_->testSignal(arg0)"));
+    }
+
+    #[test]
+    fn test_cpp_class_with_slot() {
+        let mut obj = QObjectConfig::new("Dummy");
+        let obj = obj
+            .inherit(TypeRef::qobject())
+            .slot(QObjectMethod::new("testSlot").arg::<&QString>("arg0"));
+        let (code, _) = generate("dummy.moc", &[&obj]);
+
+        println!("{}", code);
+
+        assert!(code.contains("public Q_SLOTS:"));
+        assert!(code.contains("void testSlot(const QString& arg0)"));
     }
 }
