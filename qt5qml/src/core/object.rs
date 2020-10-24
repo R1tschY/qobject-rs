@@ -1,7 +1,7 @@
 use crate::core::{Connection, QMetaObject};
 use crate::QBox;
 use std::borrow::Cow;
-use std::ffi::CStr;
+use std::ffi::{CStr, CString, NulError};
 use std::os::raw::c_char;
 use std::ptr;
 
@@ -104,7 +104,7 @@ impl QObject {
         )
     }
 
-    pub fn disconnect_internal(
+    fn disconnect_internal(
         sender: &QObject,
         signal: &CStr,
         receiver: &QObject,
@@ -144,15 +144,15 @@ impl QObject {
     }
 
     pub fn object_name_changed_signal() -> Signal {
-        Signal::new(signal_cstr!("objectNameChanged(const QString&)"))
+        crate_signal!("objectNameChanged(const QString&)")
     }
 
     pub fn destroyed_signal() -> Signal {
-        Signal::new(signal_cstr!("destroyed(QObject*)"))
+        crate_signal!("destroyed(QObject*)")
     }
 
     pub fn delete_later_slot() -> Slot {
-        Slot::new(slot_cstr!("deleteLater()"))
+        crate_slot!("deleteLater()")
     }
 }
 
@@ -202,7 +202,12 @@ impl Default for ConnectionType {
 }
 
 impl Signal {
-    pub fn new<T: Into<Cow<'static, CStr>>>(value: T) -> Self {
+    pub fn new(value: &str) -> Result<Self, NulError> {
+        Ok(Self(CString::new(format!("2{}", value))?.into()))
+    }
+
+    /// Create from raw meta method name (Starts with `2`).
+    pub fn from_raw<T: Into<Cow<'static, CStr>>>(value: T) -> Self {
         Self(value.into())
     }
 
@@ -212,7 +217,12 @@ impl Signal {
 }
 
 impl Slot {
-    pub fn new<T: Into<Cow<'static, CStr>>>(value: T) -> Self {
+    pub fn new(value: &str) -> Result<Self, NulError> {
+        Ok(Self(CString::new(format!("1{}", value))?.into()))
+    }
+
+    /// Create from raw meta method name (Starts with `1`).
+    pub fn from_raw<T: Into<Cow<'static, CStr>>>(value: T) -> Self {
         Self(value.into())
     }
 
@@ -223,7 +233,7 @@ impl Slot {
 
 impl From<Signal> for Slot {
     fn from(value: Signal) -> Self {
-        Slot::new(value.0)
+        Slot::from_raw(value.0)
     }
 }
 

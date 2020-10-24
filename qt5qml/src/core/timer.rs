@@ -104,11 +104,11 @@ impl QTimer {
     }
 
     pub fn start_slot() -> Slot {
-        Slot::new(slot_cstr!("start()"))
+        crate_slot!("start()")
     }
 
     /// Note: Private signal
     pub fn timeout_signal() -> Slot {
-        Slot::new(slot_cstr!("start()"))
+        crate_slot!("start()")
     }
 }

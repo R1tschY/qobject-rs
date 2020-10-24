@@ -1,6 +1,7 @@
 #[macro_use]
 extern crate cpp;
 
+/// Define a opaque struct.
 #[macro_export]
 macro_rules! opaque_struct {
     ($x:ident) => {
@@ -11,6 +12,7 @@ macro_rules! opaque_struct {
     };
 }
 
+/// Create a `&'static CStr` from a string literal.
 #[macro_export]
 macro_rules! cstr {
     ($strlit:expr) => {
@@ -18,21 +20,60 @@ macro_rules! cstr {
     };
 }
 
+/// Get slot connect name.
+///
+/// Equivalent to Qt SLOT macro
+///
+/// ```rust
+/// # use qt5qml::core::{QObject, ConnectionType};
+/// # let object1 = QObject::new(None);
+/// # let object2 = QObject::new(None);
+///
+/// QObject::connect(
+///     &object1, signal!("triggered()"),
+///     &object2, slot!("onTriggered()"),
+///     ConnectionType::default());
+/// ```
 #[macro_export]
-macro_rules! slot_cstr {
+macro_rules! slot {
     ($strlit:expr) => {
-        cstr!(concat!("1", $strlit))
+        qt5qml::core::Slot::from_raw(cstr!(concat!("1", $strlit)))
     };
 }
 
-#[macro_export]
-macro_rules! signal_cstr {
+macro_rules! crate_slot {
     ($strlit:expr) => {
-        cstr!(concat!("2", $strlit))
+        crate::core::Slot::from_raw(cstr!(concat!("1", $strlit)))
     };
 }
 
+/// Get signal connect name.
+///
+/// Equivalent to Qt SIGNAL macro.
+///
+/// ```rust
+/// # use qt5qml::core::{QObject, ConnectionType};
+/// # let object1 = QObject::new(None);
+/// # let object2 = QObject::new(None);
+///
+/// QObject::connect(
+///     &object1, signal!("triggered()"),
+///     &object2, slot!("onTriggered()"),
+///     ConnectionType::default());
+/// ```
 #[macro_export]
+macro_rules! signal {
+    ($strlit:expr) => {
+        qt5qml::core::Signal::from_raw(cstr!(concat!("2", $strlit)))
+    };
+}
+
+macro_rules! crate_signal {
+    ($strlit:expr) => {
+        crate::core::Signal::from_raw(cstr!(concat!("2", $strlit)))
+    };
+}
+
 macro_rules! impl_qobject_ref {
     ($ty:ty) => {
         impl crate::core::QObjectRef for $ty {
@@ -106,7 +147,7 @@ pub struct QBox<T: QObjectRef>(ptr::NonNull<T>);
 
 impl<T: QObjectRef> QBox<T> {
     pub unsafe fn from_raw(ptr: *mut T) -> Self {
-        Self(ptr::NonNull::new(ptr).expect("tried to created QBox from null pointer"))
+        Self(ptr::NonNull::new(ptr).expect("tried to create a QBox from a null pointer"))
     }
 }
 
