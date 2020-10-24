@@ -305,6 +305,7 @@ pub struct QObjectMethod {
     pub(crate) args: Vec<(String, TypeRef)>,
     pub(crate) rtype: Option<TypeRef>,
     pub(crate) scriptable: bool,
+    pub(crate) invokable: bool,
     pub(crate) const_: bool,
     pub(crate) override_: bool,
 }
@@ -317,6 +318,7 @@ impl QObjectMethod {
             args: vec![],
             rtype: None,
             scriptable: false,
+            invokable: false,
             const_: false,
             override_: false,
         }
@@ -344,6 +346,11 @@ impl QObjectMethod {
 
     pub fn scriptable(mut self) -> Self {
         self.scriptable = true;
+        self
+    }
+
+    pub fn invokable(mut self) -> Self {
+        self.invokable = true;
         self
     }
 
@@ -375,6 +382,7 @@ pub struct QObjectConfig {
     pub(crate) base_class: TypeRef,
     pub(crate) properties: Vec<QObjectProp>,
     pub(crate) methods: Vec<QObjectMethod>,
+    pub(crate) slots: Vec<QObjectMethod>,
     pub(crate) signals: Vec<QObjectSignal>,
     pub(crate) qml: bool,
 }
@@ -387,6 +395,7 @@ impl QObjectConfig {
             properties: vec![],
             methods: vec![],
             signals: vec![],
+            slots: vec![],
             qml: true,
         }
     }
@@ -408,6 +417,11 @@ impl QObjectConfig {
 
     pub fn signal<T: Into<QObjectSignal>>(&mut self, signal: T) -> &mut Self {
         self.signals.push(signal.into());
+        self
+    }
+
+    pub fn slot<T: Into<QObjectMethod>>(&mut self, slot: T) -> &mut Self {
+        self.slots.push(slot.into());
         self
     }
 

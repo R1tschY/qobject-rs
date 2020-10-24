@@ -118,12 +118,14 @@ fn generate_prop_def(prop: &QObjectProp) -> String {
 
 fn generate_method_impl(meth: &QObjectMethod) -> String {
     let scriptable = if meth.scriptable { "Q_SCRIPTABLE " } else { "" };
+    let invokable = if meth.invokable { "Q_INVOKABLE " } else { "" };
     let const_ = if meth.const_ { " const" } else { "" };
     let override_ = if meth.override_ { " override" } else { "" };
 
     format!(
-        "  {}{}{}{} {{\n    {}\n  }}",
+        "  {}{}{}{}{} {{\n    {}\n  }}",
         scriptable,
+        invokable,
         generate_base_function_def(&meth.name, &meth.args, &meth.rtype),
         const_,
         override_,
@@ -363,6 +365,13 @@ impl GenerateCppCode for QObjectConfig {
             self.signals
                 .iter()
                 .map(|signal| generate_signal(signal).into()),
+        );
+        lines.push("".into());
+        lines.push("public Q_SLOTS:".into());
+        lines.extend(
+            self.slots
+                .iter()
+                .map(|slot| generate_method_impl(slot).into()),
         );
         lines.push("".into());
         lines.push("private:".into());
