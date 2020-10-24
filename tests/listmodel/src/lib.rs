@@ -2,19 +2,19 @@ use qt5qml::core::{QModelIndex, QVariant};
 include!(concat!(env!("OUT_DIR"), "/qffi_TestObject.rs"));
 
 pub struct TestObjectPrivate {
-    qobject: *mut TestObject,
+    _qobject: *mut TestObject,
 }
 
 impl TestObjectPrivate {
     pub fn new(qobject: *mut TestObject) -> Self {
-        Self { qobject }
+        Self { _qobject: qobject }
     }
 
-    pub fn row_count(&self, parent: &QModelIndex) -> i32 {
+    pub fn row_count(&self, _parent: &QModelIndex) -> i32 {
         0
     }
 
-    pub fn data(&self, parent: &QModelIndex, role: i32) -> QVariant {
+    pub fn data(&self, _parent: &QModelIndex, _role: i32) -> QVariant {
         QVariant::new()
     }
 }

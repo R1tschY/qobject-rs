@@ -1,5 +1,5 @@
 use qobject_compiler::moc::MocConfig;
-use qobject_compiler::{CcBuild, QObjectBuild, QObjectMethod, QObjectProp, QObjectSignal, TypeRef};
+use qobject_compiler::{CcBuild, QObjectBuild, QObjectSignal};
 
 fn main() {
     let config = pkg_config::probe_library("Qt5Core").unwrap();

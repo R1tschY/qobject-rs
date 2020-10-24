@@ -1,8 +1,5 @@
-use crate::core::{QApplicationFactory, QCoreApplication};
-use crate::{CppBox, Deletable, QBox};
-use std::ffi::CString;
-use std::os::raw::{c_char, c_int};
-use std::pin::Pin;
+use crate::core::QApplicationFactory;
+use std::os::raw::c_char;
 
 cpp! {{
     #include <QGuiApplication>

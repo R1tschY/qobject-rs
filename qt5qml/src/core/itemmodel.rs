@@ -46,7 +46,7 @@ impl QModelIndex {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.r >= 0 && self.c >= 0 && self.m != ptr::null()
+        self.r >= 0 && self.c >= 0 && self.m.is_null()
     }
 
     /*    pub fn parent(&self) -> QModelIndex {

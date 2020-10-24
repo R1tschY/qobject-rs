@@ -15,6 +15,7 @@ pub(crate) struct FfiFunction {
     friend_class: Option<String>,
 }
 
+#[allow(dead_code)]
 impl FfiFunction {
     pub fn new(name: &str) -> Self {
         Self {

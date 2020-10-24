@@ -1,6 +1,5 @@
 use qobject_compiler::moc::MocConfig;
-use qobject_compiler::qobject::TypeRefTrait;
-use qobject_compiler::{CcBuild, QObjectBuild, QObjectMethod, QObjectProp, TypeRef};
+use qobject_compiler::{CcBuild, QObjectBuild, QObjectMethod, TypeRef};
 use qt5qml::core::{QModelIndex, QVariant};
 
 fn main() {

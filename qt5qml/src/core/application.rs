@@ -4,7 +4,7 @@ use std::os::raw::{c_char, c_int};
 use std::pin::Pin;
 
 use crate::core::QObjectRef;
-use crate::{CppBox, Deletable, QBox};
+use crate::QBox;
 
 cpp! {{
     #include <QCoreApplication>
@@ -50,9 +50,9 @@ pub trait QApplicationFactory {
         let app = unsafe { QBox::from_raw(Self::create_app(argc_ptr, argv_ptr)) };
 
         QApplicationHolder {
-            argv_owned,
-            argv,
-            argc,
+            _argv_owned: argv_owned,
+            _argv: argv,
+            _argc: argc,
             app,
         }
     }
@@ -69,9 +69,9 @@ impl QApplicationFactory for QCoreApplication {
 }
 
 pub struct QApplicationHolder<T: QObjectRef> {
-    argv_owned: Pin<Vec<CString>>,
-    argv: Pin<Vec<*const c_char>>,
-    argc: Pin<Box<c_int>>,
+    _argv_owned: Pin<Vec<CString>>,
+    _argv: Pin<Vec<*const c_char>>,
+    _argc: Pin<Box<c_int>>,
     app: QBox<T>,
 }
 

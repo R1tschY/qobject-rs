@@ -6,12 +6,12 @@ use qt5qml::core::QObjectRef;
 include!(concat!(env!("OUT_DIR"), "/qffi_MyQObject.rs"));
 
 pub struct MyQObjectPrivate {
-    qobject: *mut MyQObject,
+    _qobject: *mut MyQObject,
 }
 
 impl MyQObjectPrivate {
     pub fn new(qobject: *mut MyQObject) -> Self {
-        Self { qobject }
+        Self { _qobject: qobject }
     }
 }
 

@@ -1,7 +1,7 @@
 include!(concat!(env!("OUT_DIR"), "/qffi_TestObject.rs"));
 
 pub struct TestObjectPrivate {
-    qobject: *mut TestObject,
+    _qobject: *mut TestObject,
     prop_rw: String,
     prop_w: String,
 }
@@ -9,7 +9,7 @@ pub struct TestObjectPrivate {
 impl TestObjectPrivate {
     pub fn new(qobject: *mut TestObject) -> Self {
         Self {
-            qobject,
+            _qobject: qobject,
             prop_rw: "".to_string(),
             prop_w: "".to_string(),
         }

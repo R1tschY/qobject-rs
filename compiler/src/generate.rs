@@ -2,7 +2,6 @@ use std::borrow::Cow;
 use std::collections::HashSet;
 use std::ffi::CStr;
 use std::iter::FromIterator;
-use std::os::raw::c_char;
 
 use crate::ffi::{FfiBridge, FfiFunction, ImplCode};
 use crate::qobject::{Include, QObjectConfig, QObjectMethod, QObjectProp, QObjectSignal, TypeRef};
@@ -555,7 +554,6 @@ mod tests {
     #[test]
     fn test_cpp_class_with_signal() {
         let mut obj = QObjectConfig::new("Dummy");
-        let obj_clone = obj.clone();
         let obj = obj
             .inherit(TypeRef::qobject())
             .signal(QObjectSignal::new("testSignal").arg("arg0", &TypeRef::qobject_ptr()));

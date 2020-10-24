@@ -3,13 +3,12 @@ extern crate qt5qml;
 use qt5qml::core::{QApplicationFactory, QHashIntQByteArray, QModelIndex, QVariant, QT_USER_ROLE};
 use qt5qml::gui::QGuiApplication;
 use qt5qml::qml::QQmlApplicationEngine;
-use std::convert::TryFrom;
 use std::process::exit;
 
 include!(concat!(env!("OUT_DIR"), "/qffi_TestObject.rs"));
 
 pub struct TestObjectPrivate {
-    qobject: *mut TestObject,
+    _qobject: *mut TestObject,
     items: Vec<(String, String)>,
 }
 
@@ -19,7 +18,7 @@ const DESCRIPTION_ROLE: i32 = NAME_ROLE + 1;
 impl TestObjectPrivate {
     pub fn new(qobject: *mut TestObject) -> Self {
         Self {
-            qobject,
+            _qobject: qobject,
             items: vec![
                 ("Item 1".into(), "a description".into()),
                 ("Item 2".into(), "a second description".into()),
