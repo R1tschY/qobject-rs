@@ -171,4 +171,20 @@ mod tests {
         let cstr: &CStr = cstr!("ABC");
         assert_eq!(cstr, CString::new("ABC").unwrap().as_c_str())
     }
+
+    #[test]
+    fn test_signal() {
+        assert_eq!(
+            signal!("signal()").as_cstr(),
+            CString::new("2signal()").unwrap().as_c_str()
+        )
+    }
+
+    #[test]
+    fn test_slot() {
+        assert_eq!(
+            slot!("slot()").as_cstr(),
+            CString::new("1slot()").unwrap().as_c_str()
+        )
+    }
 }
