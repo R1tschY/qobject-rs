@@ -1,3 +1,4 @@
+use crate::core::thread::QThread;
 use crate::core::{Connection, QMetaObject};
 use crate::QBox;
 use std::borrow::Cow;
@@ -68,6 +69,12 @@ impl QObject {
         &*cpp!(unsafe [obj as "const QObject*"] -> *const QMetaObject as "const QMetaObject*" {
             return obj->metaObject();
         })
+    }
+
+    fn move_to_thread(obj: &mut QObject, target_thread: *mut QThread) -> () {
+        cpp!(unsafe [obj as "QObject*", target_thread as  "QThread*"] {
+            obj->moveToThread(target_thread);
+        });
     }
 
     fn connect_internal(
@@ -260,5 +267,16 @@ pub trait QObjectRef {
     fn disconnect_from_method<T: Into<Slot>>(&self, receiver: &QObject, method: T) -> bool {
         self.as_qobject()
             .disconnect_from_internal(receiver, Some(method.into().as_cstr()))
+    }
+
+    fn move_to_thread(&mut self, target_thread: Option<&mut QThread>) {
+        QObject::move_to_thread(
+            self.as_qobject_mut(),
+            if let Some(t) = target_thread {
+                t
+            } else {
+                ptr::null_mut()
+            },
+        );
     }
 }

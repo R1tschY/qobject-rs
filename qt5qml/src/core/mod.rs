@@ -10,6 +10,7 @@ mod list;
 mod meta;
 mod object;
 mod string;
+mod thread;
 mod timer;
 mod url;
 mod variant;
