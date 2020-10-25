@@ -151,15 +151,15 @@ impl QObject {
     }
 
     pub fn object_name_changed_signal() -> Signal {
-        crate_signal!("objectNameChanged(const QString&)")
+        signal!("objectNameChanged(const QString&)")
     }
 
     pub fn destroyed_signal() -> Signal {
-        crate_signal!("destroyed(QObject*)")
+        signal!("destroyed(QObject*)")
     }
 
     pub fn delete_later_slot() -> Slot {
-        crate_slot!("deleteLater()")
+        slot!("deleteLater()")
     }
 }
 

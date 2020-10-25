@@ -26,6 +26,7 @@ macro_rules! cstr {
 ///
 /// ```rust
 /// # use qt5qml::core::{QObject, ConnectionType};
+/// # use qt5qml::{signal, slot};
 /// # let object1 = QObject::new(None);
 /// # let object2 = QObject::new(None);
 ///
@@ -37,13 +38,7 @@ macro_rules! cstr {
 #[macro_export]
 macro_rules! slot {
     ($strlit:expr) => {
-        qt5qml::core::Slot::from_raw(cstr!(concat!("1", $strlit)))
-    };
-}
-
-macro_rules! crate_slot {
-    ($strlit:expr) => {
-        crate::core::Slot::from_raw(cstr!(concat!("1", $strlit)))
+        $crate::core::Slot::from_raw($crate::cstr!(concat!("1", $strlit)))
     };
 }
 
@@ -53,6 +48,7 @@ macro_rules! crate_slot {
 ///
 /// ```rust
 /// # use qt5qml::core::{QObject, ConnectionType};
+/// # use qt5qml::{signal, slot};
 /// # let object1 = QObject::new(None);
 /// # let object2 = QObject::new(None);
 ///
@@ -64,13 +60,7 @@ macro_rules! crate_slot {
 #[macro_export]
 macro_rules! signal {
     ($strlit:expr) => {
-        qt5qml::core::Signal::from_raw(cstr!(concat!("2", $strlit)))
-    };
-}
-
-macro_rules! crate_signal {
-    ($strlit:expr) => {
-        crate::core::Signal::from_raw(cstr!(concat!("2", $strlit)))
+        $crate::core::Signal::from_raw($crate::cstr!(concat!("2", $strlit)))
     };
 }
 
