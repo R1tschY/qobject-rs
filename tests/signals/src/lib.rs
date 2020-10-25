@@ -9,7 +9,15 @@ impl TestObjectPrivate {
         Self { qobject }
     }
 
-    pub unsafe fn emit_signal_0(&mut self) {
-        (&mut *self.qobject).signal0();
+    pub fn emit_signal_0(&mut self) {
+        unsafe { (&mut *self.qobject).signal0() };
     }
+}
+
+#[test]
+fn test_signal() {
+    use std::ptr;
+
+    let mut object = TestObject::new(ptr::null_mut());
+    object.signal0();
 }

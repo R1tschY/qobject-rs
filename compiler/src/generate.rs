@@ -302,7 +302,7 @@ impl GenerateCppCode for QObjectConfig {
                 args,
                 None,
                 ImplCode::Cpp(body.into()),
-                Some(self.name.clone()),
+                None,
             ));
         }
 
