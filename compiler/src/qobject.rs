@@ -10,14 +10,21 @@ pub enum Include {
 pub struct TypeRef {
     cpp: String,
     rust: String,
+    return_safe: bool,
     include: Option<Include>,
 }
 
 impl TypeRef {
-    pub fn new(cpp_name: &str, rust_name: &str, include: Option<Include>) -> Self {
+    pub fn new(
+        cpp_name: &str,
+        rust_name: &str,
+        return_safe: bool,
+        include: Option<Include>,
+    ) -> Self {
         Self {
             cpp: cpp_name.into(),
             rust: rust_name.into(),
+            return_safe,
             include,
         }
     }
@@ -27,6 +34,7 @@ impl TypeRef {
             cpp: "void*".into(),
             include: None,
             rust: "*mut std::ffi::c_void".into(),
+            return_safe: true,
         }
     }
 
@@ -35,6 +43,7 @@ impl TypeRef {
             cpp: "QObject".into(),
             rust: "qt5qml::core::QObject".into(),
             include: Some(Include::System("QObject".into())),
+            return_safe: false,
         }
     }
 
@@ -43,6 +52,7 @@ impl TypeRef {
             cpp: name.into(),
             rust: name.into(),
             include: None,
+            return_safe: false,
         }
     }
 
@@ -51,6 +61,7 @@ impl TypeRef {
             cpp: "QObject*".into(),
             rust: "*mut qt5qml::core::QObject".into(),
             include: Some(Include::System("QObject".into())),
+            return_safe: true,
         }
     }
 
@@ -59,6 +70,7 @@ impl TypeRef {
             cpp: class_name.into(),
             rust: format!("qt5qml::core::{}", class_name),
             include: Some(Include::System(class_name.into())),
+            return_safe: false,
         }
     }
 
@@ -71,6 +83,7 @@ impl TypeRef {
             cpp: format!("{}*", self.cpp),
             include: self.include.clone(),
             rust: format!("*mut {}", self.rust),
+            return_safe: true,
         }
     }
 
@@ -79,6 +92,7 @@ impl TypeRef {
             cpp: format!("const {}*", self.cpp),
             include: self.include.clone(),
             rust: format!("*const {}", self.rust),
+            return_safe: true,
         }
     }
 
@@ -87,6 +101,7 @@ impl TypeRef {
             cpp: format!("{}&", self.cpp),
             include: self.include.clone(),
             rust: format!("&mut {}", self.rust),
+            return_safe: true,
         }
     }
 
@@ -95,6 +110,7 @@ impl TypeRef {
             cpp: format!("const {}&", self.cpp),
             include: self.include.clone(),
             rust: format!("&{}", self.rust),
+            return_safe: true,
         }
     }
 
@@ -113,6 +129,10 @@ impl TypeRef {
     pub fn include(&self) -> &Option<Include> {
         &self.include
     }
+
+    pub fn return_safe(&self) -> bool {
+        self.return_safe
+    }
 }
 
 pub trait TypeRefTrait {
@@ -120,21 +140,22 @@ pub trait TypeRefTrait {
 }
 
 macro_rules! impl_type_ref_trait {
-    ($rust:ty => $cpp:expr, $include:expr) => {
+    ($rust:ty => $cpp:expr, $return_safe:expr, $include:expr) => {
         impl TypeRefTrait for $rust {
             fn type_ref() -> TypeRef {
                 TypeRef::new(
                     $cpp.into(),
                     stringify!($rust).into(),
+                    $return_safe,
                     Some(Include::System($include.into())),
                 )
             }
         }
     };
-    ($rust:ty => $cpp:expr) => {
+    ($rust:ty => $cpp:expr, $return_safe:expr) => {
         impl TypeRefTrait for $rust {
             fn type_ref() -> TypeRef {
-                TypeRef::new($cpp.into(), stringify!($rust).into(), None)
+                TypeRef::new($cpp.into(), stringify!($rust).into(), $return_safe, None)
             }
         }
     };
@@ -163,28 +184,30 @@ impl<T: TypeRefTrait> TypeRefTrait for *mut T {
     }
 }
 
-impl_type_ref_trait!(i8 => "int8_t", "cstdint");
-impl_type_ref_trait!(u8 => "uint8_t", "cstdint");
-impl_type_ref_trait!(i16 => "int16_t", "cstdint");
-impl_type_ref_trait!(u16 => "uint16_t", "cstdint");
-impl_type_ref_trait!(i32 => "int32_t", "cstdint");
-impl_type_ref_trait!(u32 => "uint32_t", "cstdint");
-impl_type_ref_trait!(i64 => "int64_t", "cstdint");
-impl_type_ref_trait!(u64 => "uint64_t", "cstdint");
-impl_type_ref_trait!(f32 => "float");
-impl_type_ref_trait!(f64 => "double");
-impl_type_ref_trait!(std::os::raw::c_void => "void");
-impl_type_ref_trait!(qt5qml::core::QModelIndex => "QModelIndex", "QModelIndex");
-impl_type_ref_trait!(qt5qml::core::QString => "QString", "QString");
-impl_type_ref_trait!(qt5qml::core::QByteArray => "QByteArray", "QByteArray");
-impl_type_ref_trait!(qt5qml::core::QVariant => "QVariant", "QVariant");
-impl_type_ref_trait!(qt5qml::core::QHashIntQByteArray => "QHash<int, QByteArray>", "QHash");
+impl_type_ref_trait!(i8 => "int8_t", true, "cstdint");
+impl_type_ref_trait!(u8 => "uint8_t", true, "cstdint");
+impl_type_ref_trait!(i16 => "int16_t", true, "cstdint");
+impl_type_ref_trait!(u16 => "uint16_t", true, "cstdint");
+impl_type_ref_trait!(i32 => "int32_t", true, "cstdint");
+impl_type_ref_trait!(u32 => "uint32_t", true, "cstdint");
+impl_type_ref_trait!(i64 => "int64_t", true, "cstdint");
+impl_type_ref_trait!(u64 => "uint64_t", true, "cstdint");
+impl_type_ref_trait!(f32 => "float", true);
+impl_type_ref_trait!(f64 => "double", true);
+impl_type_ref_trait!(bool => "bool", true);
+impl_type_ref_trait!(std::os::raw::c_void => "void", false);
+impl_type_ref_trait!(qt5qml::core::QModelIndex => "QModelIndex", false, "QModelIndex");
+impl_type_ref_trait!(qt5qml::core::QString => "QString", false, "QString");
+impl_type_ref_trait!(qt5qml::core::QByteArray => "QByteArray", false, "QByteArray");
+impl_type_ref_trait!(qt5qml::core::QVariant => "QVariant", false, "QVariant");
+impl_type_ref_trait!(qt5qml::core::QHashIntQByteArray => "QHash<int, QByteArray>", false, "QHash");
 
 impl TypeRefTrait for &CStr {
     fn type_ref() -> TypeRef {
         TypeRef::new(
             "const char*".into(),
             "*const std::os::raw::c_char".into(),
+            true,
             None,
         )
     }
@@ -192,7 +215,12 @@ impl TypeRefTrait for &CStr {
 
 impl TypeRefTrait for &mut CStr {
     fn type_ref() -> TypeRef {
-        TypeRef::new("char*".into(), "*mut std::os::raw::c_char".into(), None)
+        TypeRef::new(
+            "char*".into(),
+            "*mut std::os::raw::c_char".into(),
+            true,
+            None,
+        )
     }
 }
 

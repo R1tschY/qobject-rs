@@ -97,7 +97,7 @@ impl FfiFunction {
             .map(|arg| format!("{} {}", arg.1.cpp_type(), arg.0))
             .collect();
         let rtype: String = if let Some(rty) = &self.rtype {
-            if is_builtin_type(rty.cpp_type()) {
+            if rty.return_safe() {
                 rty.cpp_type().into()
             } else {
                 args.push(format!("{}* out__", rty.cpp_type()));
@@ -140,7 +140,7 @@ impl FfiFunction {
             .map(|arg| format!("{}: {}", arg.0, arg.1.rust_type()))
             .collect();
         let rtype: String = if let Some(rty) = &self.rtype {
-            if is_builtin_type(rty.cpp_type()) {
+            if rty.return_safe() {
                 rty.rust_type().into()
             } else {
                 args.push(format!("out__: *mut {}", rty.rust_type()));
@@ -162,35 +162,11 @@ impl FfiFunction {
             _ => panic!("No Rust body for {}", self.name),
         };
         format!(
-            "#[no_mangle] pub extern {} {{\n  {}\n}}",
+            "#[no_mangle] pub extern \"C\" {} {{\n  {}\n}}",
             self.generate_rust_sig(),
             body
         )
     }
-}
-
-lazy_static! {
-    static ref BUILTIN_TYPES: HashSet<&'static str> = {
-        let mut types = HashSet::new();
-        types.insert("unsigned");
-        types.insert("int");
-        types.insert("unsigned int");
-        types.insert("long");
-        types.insert("unsigned long");
-        types.insert("short");
-        types.insert("unsigned short");
-        types.insert("char");
-        types.insert("signed char");
-        types.insert("unsigned char");
-        types.insert("float");
-        types.insert("double");
-        types.insert("bool");
-        types
-    };
-}
-
-fn is_builtin_type(ty: &str) -> bool {
-    ty.ends_with("*") || BUILTIN_TYPES.contains(ty)
 }
 
 pub(crate) struct FfiBridge {

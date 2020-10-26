@@ -140,13 +140,17 @@ fn generate_ffi_impl(meth: &QObjectMethod) -> String {
         .collect();
     params.insert(0, "_d".into());
     if let Some(rty) = &meth.rtype {
-        params.push("&out__".into());
-        format!(
-            "{} out__;\n    {}({});\n    return out__;",
-            rty.cpp_type(),
-            meth.get_ffi_name(),
-            params.join(", ")
-        )
+        if rty.return_safe() {
+            format!("return {}({});", meth.get_ffi_name(), params.join(", "))
+        } else {
+            params.push("&out__".into());
+            format!(
+                "{} out__;\n    {}({});\n    return out__;",
+                rty.cpp_type(),
+                meth.get_ffi_name(),
+                params.join(", ")
+            )
+        }
     } else {
         format!("{}({});", meth.get_ffi_name(), params.join(", "))
     }
@@ -237,8 +241,12 @@ impl GenerateCppCode for QObjectConfig {
             let params: Vec<String> = meth.args.iter().map(|a| a.0.clone()).collect();
             let call = format!(
                 "unsafe {{ {}(*(self_ as *mut {}Private)).{}({}) }}",
-                if meth.rtype.is_some() {
-                    "*out__ = "
+                if let Some(ref rty) = &meth.rtype {
+                    if rty.return_safe() {
+                        ""
+                    } else {
+                        "*out__ = "
+                    }
                 } else {
                     ""
                 },
@@ -315,7 +323,7 @@ impl GenerateCppCode for QObjectConfig {
                     .arg::<&CStr>("qml_name")
                     .ret::<i32>()
                     .cpp_impl(&format!(
-                        "*out__ = qmlRegisterType<{}>(uri, version_major, version_minor, qml_name);",
+                        "return qmlRegisterType<{}>(uri, version_major, version_minor, qml_name);",
                         self.name
                     )),
             );
@@ -443,8 +451,8 @@ impl {0} {{
             lines.push(
                 format!(
                     r#"
-    pub(crate) unsafe fn {1}({2}) {{
-        Qffi_{0}_{1}({3});
+    pub(crate) fn {1}({2}) {{
+        unsafe {{ Qffi_{0}_{1}({3}); }}
     }}
 "#,
                     obj.name,
@@ -462,9 +470,7 @@ impl {0} {{
                 format!(
                     r#"
     pub(crate) fn register_type(uri: &std::ffi::CStr, version_major: i32, version_minor: i32, qml_name: &std::ffi::CStr) -> i32 {{
-        let mut out__: i32 = 0;
-        unsafe {{ Qffi_{0}_registerType(uri.as_ptr(), version_major, version_minor, qml_name.as_ptr(), &mut out__); }}
-        return out__;
+        unsafe {{ Qffi_{0}_registerType(uri.as_ptr(), version_major, version_minor, qml_name.as_ptr()) }}
     }}
 "#,
                     obj.name,
@@ -561,7 +567,7 @@ mod tests {
 
         println!("{}", code);
 
-        assert!(code.contains("friend void Qffi_Dummy_testSignal(Dummy* self_, QObject* arg0)"));
+        assert!(code.contains("void Qffi_Dummy_testSignal(Dummy* self_, QObject* arg0)"));
         assert!(code.contains("Q_EMIT self_->testSignal(arg0)"));
     }
 
