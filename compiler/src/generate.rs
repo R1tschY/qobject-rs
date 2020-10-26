@@ -4,7 +4,8 @@ use std::ffi::CStr;
 use std::iter::FromIterator;
 
 use crate::ffi::{FfiBridge, FfiFunction, ImplCode};
-use crate::qobject::{Include, QObjectConfig, QObjectMethod, QObjectProp, QObjectSignal, TypeRef};
+use crate::qobject::{QObjectConfig, QObjectMethod, QObjectProp, QObjectSignal};
+use crate::typeref::{Include, TypeRef};
 use crate::utils::to_snake_case;
 
 pub trait Dependent {
@@ -266,7 +267,7 @@ impl GenerateCppCode for QObjectConfig {
             &format!("Qffi_{}_private_new", &self.name),
             vec![(
                 "qobject".into(),
-                TypeRef::generated(&self.name).with_mut_ptr(),
+                TypeRef::generated(self.name.clone()).with_mut_ptr(),
             )],
             Some(TypeRef::void_mut_ptr()),
             ImplCode::Rust(format!(
@@ -299,7 +300,7 @@ impl GenerateCppCode for QObjectConfig {
                 0,
                 (
                     "self_".into(),
-                    TypeRef::generated(&self.name).with_mut_ptr(),
+                    TypeRef::generated(self.name.clone()).with_mut_ptr(),
                 ),
             );
 
@@ -497,12 +498,11 @@ mod tests {
         let obj_clone = obj.clone();
         let obj = obj
             .inherit(TypeRef::qt_core_object("QObject"))
-            .property(QObjectProp::new_readonly(
-                &TypeRef::qstring(),
-                "dummy",
-                "dummy",
-                "dummyChanged",
-            ))
+            .property(
+                QObjectProp::new_with_type(TypeRef::qstring(), "dummy")
+                    .read("dummy")
+                    .notify("dummyChanged"),
+            )
             .method(
                 QObjectMethod::new("dummy")
                     .ret::<QString>()
@@ -529,8 +529,8 @@ mod tests {
     fn test_cpp_impl() {
         let def = generate_ffi_impl(
             &(QObjectMethod::new("test")
-                .arg_with_type("arg0", &TypeRef::qt_core_object("CppType0"))
-                .arg_with_type("arg1", &TypeRef::qt_core_object("CppType1"))
+                .arg_with_type("arg0", TypeRef::qt_core_object("CppType0"))
+                .arg_with_type("arg1", TypeRef::qt_core_object("CppType1"))
                 .attach(&QObjectConfig::new("Test"))),
         );
         assert_eq!(
@@ -543,8 +543,8 @@ mod tests {
     fn test_cpp_impl_with_return() {
         let def = generate_ffi_impl(
             &QObjectMethod::new("test")
-                .arg_with_type("arg0", &TypeRef::qt_core_object("CppType0"))
-                .ret_type(&TypeRef::qt_core_object("RetCppType"))
+                .arg_with_type("arg0", TypeRef::qt_core_object("CppType0"))
+                .ret_type(TypeRef::qt_core_object("RetCppType"))
                 .attach(&QObjectConfig::new("Test")),
         );
         assert_eq!(
@@ -562,7 +562,7 @@ mod tests {
         let mut obj = QObjectConfig::new("Dummy");
         let obj = obj
             .inherit(TypeRef::qobject())
-            .signal(QObjectSignal::new("testSignal").arg("arg0", &TypeRef::qobject_ptr()));
+            .signal(QObjectSignal::new("testSignal").arg_with_type("arg0", TypeRef::qobject_ptr()));
         let (code, _) = generate("dummy.moc", &[&obj]);
 
         println!("{}", code);

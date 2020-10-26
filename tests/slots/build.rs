@@ -12,7 +12,7 @@ fn main() {
     }
 
     QObjectBuild::new("TestObject")
-        .slot(&QObjectMethod::new("slot0"))
+        .slot(QObjectMethod::new("slot0"))
         .qml(false)
         .build(&cpp, &moc);
 }

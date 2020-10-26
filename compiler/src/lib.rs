@@ -10,12 +10,14 @@ pub use cc::Build as CcBuild;
 use crate::build::build;
 use crate::moc::MocConfig;
 use crate::qobject::QObjectConfig;
-pub use crate::qobject::{QObjectMethod, QObjectProp, QObjectSignal, TypeRef};
+pub use crate::qobject::{QObjectMethod, QObjectProp, QObjectSignal};
+pub use crate::typeref::{Include, TypeRef};
 
 pub mod ffi;
 pub mod generate;
 pub mod moc;
 pub mod qobject;
+pub mod typeref;
 mod utils;
 
 pub mod build;
@@ -42,26 +44,26 @@ impl QObjectBuild {
     }
 
     /// Add a property.
-    pub fn property(&mut self, prop: &QObjectProp) -> &mut Self {
-        self.obj.property(prop.clone());
+    pub fn property(&mut self, prop: QObjectProp) -> &mut Self {
+        self.obj.property(prop);
         self
     }
 
     /// Add a method.
-    pub fn method(&mut self, meth: &QObjectMethod) -> &mut Self {
-        self.obj.method(meth.clone());
+    pub fn method(&mut self, meth: QObjectMethod) -> &mut Self {
+        self.obj.method(meth);
         self
     }
 
     /// Add a slot.
-    pub fn slot(&mut self, meth: &QObjectMethod) -> &mut Self {
-        self.obj.slot(meth.clone());
+    pub fn slot(&mut self, meth: QObjectMethod) -> &mut Self {
+        self.obj.slot(meth);
         self
     }
 
     /// Add a signal.
-    pub fn signal(&mut self, signal: &QObjectSignal) -> &mut Self {
-        self.obj.signal(signal.clone());
+    pub fn signal(&mut self, signal: QObjectSignal) -> &mut Self {
+        self.obj.signal(signal);
         self
     }
 

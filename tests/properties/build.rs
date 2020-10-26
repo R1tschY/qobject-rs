@@ -1,5 +1,6 @@
 use qobject_compiler::moc::MocConfig;
-use qobject_compiler::{CcBuild, QObjectBuild, QObjectMethod, QObjectProp, TypeRef};
+use qobject_compiler::typeref::TypeRef;
+use qobject_compiler::{CcBuild, QObjectBuild, QObjectMethod, QObjectProp};
 use qt5qml::core::QString;
 
 fn main() {
@@ -14,16 +15,16 @@ fn main() {
 
     QObjectBuild::new("TestObject")
         .property(
-            &QObjectProp::new(&TypeRef::qstring(), "prop_rw")
+            QObjectProp::new_with_type(TypeRef::qstring(), "prop_rw")
                 .read("prop_rw")
                 .write("set_prop_rw"),
         )
-        .property(&QObjectProp::new(&TypeRef::qstring(), "prop_r").read("prop_r"))
-        .property(&QObjectProp::new(&TypeRef::qstring(), "prop_w").write("set_prop_w"))
-        .method(&QObjectMethod::new("prop_r").ret::<QString>())
-        .method(&QObjectMethod::new("prop_rw").ret::<QString>())
-        .method(&QObjectMethod::new("set_prop_rw").arg::<&QString>("value"))
-        .method(&QObjectMethod::new("set_prop_w").arg::<&QString>("value"))
+        .property(QObjectProp::new_with_type(TypeRef::qstring(), "prop_r").read("prop_r"))
+        .property(QObjectProp::new_with_type(TypeRef::qstring(), "prop_w").write("set_prop_w"))
+        .method(QObjectMethod::new("prop_r").ret::<QString>())
+        .method(QObjectMethod::new("prop_rw").ret::<QString>())
+        .method(QObjectMethod::new("set_prop_rw").arg::<&QString>("value"))
+        .method(QObjectMethod::new("set_prop_w").arg::<&QString>("value"))
         .qml(false)
         .build(&cpp, &moc);
 }

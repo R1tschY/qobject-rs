@@ -1,5 +1,6 @@
 use qobject_compiler::moc::MocConfig;
-use qobject_compiler::{CcBuild, QObjectBuild, QObjectProp, TypeRef};
+use qobject_compiler::{CcBuild, QObjectBuild, QObjectProp};
+use qt5qml::core::QString;
 
 fn main() {
     let config = pkg_config::probe_library("Qt5Core").unwrap();
@@ -12,7 +13,7 @@ fn main() {
     }
 
     QObjectBuild::new("MyQObject")
-        .property(&QObjectProp::new(&TypeRef::qstring(), "my_name"))
+        .property(QObjectProp::new::<QString>("my_name"))
         .qml(false)
         .build(&cpp, &moc);
 }

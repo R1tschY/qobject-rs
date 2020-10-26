@@ -1,5 +1,6 @@
 use qobject_compiler::moc::MocConfig;
-use qobject_compiler::{CcBuild, QObjectBuild, QObjectMethod, TypeRef};
+use qobject_compiler::typeref::TypeRef;
+use qobject_compiler::{CcBuild, QObjectBuild, QObjectMethod};
 use qt5qml::core::{QModelIndex, QVariant};
 
 fn main() {
@@ -15,14 +16,14 @@ fn main() {
     QObjectBuild::new("TestObject")
         .inherit(TypeRef::qt_core_object("QAbstractListModel"))
         .method(
-            &QObjectMethod::new("rowCount")
+            QObjectMethod::new("rowCount")
                 .const_()
                 .override_()
                 .arg::<&QModelIndex>("parent")
                 .ret::<i32>(),
         )
         .method(
-            &QObjectMethod::new("data")
+            QObjectMethod::new("data")
                 .const_()
                 .override_()
                 .arg::<&QModelIndex>("index")

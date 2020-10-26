@@ -1,228 +1,4 @@
-use std::ffi::CStr;
-
-#[derive(Clone, PartialOrd, Ord, PartialEq, Eq, Hash, Debug)]
-pub enum Include {
-    System(String),
-    Relative(String),
-}
-
-#[derive(Clone, Debug)]
-pub struct TypeRef {
-    cpp: String,
-    rust: String,
-    return_safe: bool,
-    include: Option<Include>,
-}
-
-impl TypeRef {
-    pub fn new(
-        cpp_name: &str,
-        rust_name: &str,
-        return_safe: bool,
-        include: Option<Include>,
-    ) -> Self {
-        Self {
-            cpp: cpp_name.into(),
-            rust: rust_name.into(),
-            return_safe,
-            include,
-        }
-    }
-
-    pub fn void_mut_ptr() -> Self {
-        Self {
-            cpp: "void*".into(),
-            include: None,
-            rust: "*mut std::ffi::c_void".into(),
-            return_safe: true,
-        }
-    }
-
-    pub fn qobject() -> Self {
-        Self {
-            cpp: "QObject".into(),
-            rust: "qt5qml::core::QObject".into(),
-            include: Some(Include::System("QObject".into())),
-            return_safe: false,
-        }
-    }
-
-    pub fn generated(name: &str) -> Self {
-        Self {
-            cpp: name.into(),
-            rust: name.into(),
-            include: None,
-            return_safe: false,
-        }
-    }
-
-    pub fn qobject_ptr() -> Self {
-        Self {
-            cpp: "QObject*".into(),
-            rust: "*mut qt5qml::core::QObject".into(),
-            include: Some(Include::System("QObject".into())),
-            return_safe: true,
-        }
-    }
-
-    pub fn qt_core_object(class_name: &str) -> Self {
-        Self {
-            cpp: class_name.into(),
-            rust: format!("qt5qml::core::{}", class_name),
-            include: Some(Include::System(class_name.into())),
-            return_safe: false,
-        }
-    }
-
-    pub fn primitive<T: TypeRefTrait>() -> Self {
-        T::type_ref()
-    }
-
-    pub fn with_mut_ptr(&self) -> Self {
-        Self {
-            cpp: format!("{}*", self.cpp),
-            include: self.include.clone(),
-            rust: format!("*mut {}", self.rust),
-            return_safe: true,
-        }
-    }
-
-    pub fn with_const_ptr(&self) -> Self {
-        Self {
-            cpp: format!("const {}*", self.cpp),
-            include: self.include.clone(),
-            rust: format!("*const {}", self.rust),
-            return_safe: true,
-        }
-    }
-
-    pub fn with_mut_ref(&self) -> Self {
-        Self {
-            cpp: format!("{}&", self.cpp),
-            include: self.include.clone(),
-            rust: format!("&mut {}", self.rust),
-            return_safe: true,
-        }
-    }
-
-    pub fn with_const_ref(&self) -> Self {
-        Self {
-            cpp: format!("const {}&", self.cpp),
-            include: self.include.clone(),
-            rust: format!("&{}", self.rust),
-            return_safe: true,
-        }
-    }
-
-    pub fn qstring() -> Self {
-        Self::qt_core_object("QString")
-    }
-
-    pub fn cpp_type(&self) -> &str {
-        &self.cpp
-    }
-
-    pub fn rust_type(&self) -> &str {
-        &self.rust
-    }
-
-    pub fn include(&self) -> &Option<Include> {
-        &self.include
-    }
-
-    pub fn return_safe(&self) -> bool {
-        self.return_safe
-    }
-}
-
-pub trait TypeRefTrait {
-    fn type_ref() -> TypeRef;
-}
-
-macro_rules! impl_type_ref_trait {
-    ($rust:ty => $cpp:expr, $return_safe:expr, $include:expr) => {
-        impl TypeRefTrait for $rust {
-            fn type_ref() -> TypeRef {
-                TypeRef::new(
-                    $cpp.into(),
-                    stringify!($rust).into(),
-                    $return_safe,
-                    Some(Include::System($include.into())),
-                )
-            }
-        }
-    };
-    ($rust:ty => $cpp:expr, $return_safe:expr) => {
-        impl TypeRefTrait for $rust {
-            fn type_ref() -> TypeRef {
-                TypeRef::new($cpp.into(), stringify!($rust).into(), $return_safe, None)
-            }
-        }
-    };
-}
-
-impl<T: TypeRefTrait> TypeRefTrait for &T {
-    fn type_ref() -> TypeRef {
-        T::type_ref().with_const_ref()
-    }
-}
-
-impl<T: TypeRefTrait> TypeRefTrait for &mut T {
-    fn type_ref() -> TypeRef {
-        T::type_ref().with_mut_ref()
-    }
-}
-impl<T: TypeRefTrait> TypeRefTrait for *const T {
-    fn type_ref() -> TypeRef {
-        T::type_ref().with_const_ptr()
-    }
-}
-
-impl<T: TypeRefTrait> TypeRefTrait for *mut T {
-    fn type_ref() -> TypeRef {
-        T::type_ref().with_mut_ptr()
-    }
-}
-
-impl_type_ref_trait!(i8 => "int8_t", true, "cstdint");
-impl_type_ref_trait!(u8 => "uint8_t", true, "cstdint");
-impl_type_ref_trait!(i16 => "int16_t", true, "cstdint");
-impl_type_ref_trait!(u16 => "uint16_t", true, "cstdint");
-impl_type_ref_trait!(i32 => "int32_t", true, "cstdint");
-impl_type_ref_trait!(u32 => "uint32_t", true, "cstdint");
-impl_type_ref_trait!(i64 => "int64_t", true, "cstdint");
-impl_type_ref_trait!(u64 => "uint64_t", true, "cstdint");
-impl_type_ref_trait!(f32 => "float", true);
-impl_type_ref_trait!(f64 => "double", true);
-impl_type_ref_trait!(bool => "bool", true);
-impl_type_ref_trait!(std::os::raw::c_void => "void", false);
-impl_type_ref_trait!(qt5qml::core::QModelIndex => "QModelIndex", false, "QModelIndex");
-impl_type_ref_trait!(qt5qml::core::QString => "QString", false, "QString");
-impl_type_ref_trait!(qt5qml::core::QByteArray => "QByteArray", false, "QByteArray");
-impl_type_ref_trait!(qt5qml::core::QVariant => "QVariant", false, "QVariant");
-impl_type_ref_trait!(qt5qml::core::QHashIntQByteArray => "QHash<int, QByteArray>", false, "QHash");
-
-impl TypeRefTrait for &CStr {
-    fn type_ref() -> TypeRef {
-        TypeRef::new(
-            "const char*".into(),
-            "*const std::os::raw::c_char".into(),
-            true,
-            None,
-        )
-    }
-}
-
-impl TypeRefTrait for &mut CStr {
-    fn type_ref() -> TypeRef {
-        TypeRef::new(
-            "char*".into(),
-            "*mut std::os::raw::c_char".into(),
-            true,
-            None,
-        )
-    }
-}
+use crate::typeref::{TypeRef, TypeRefTrait};
 
 #[derive(Clone, Debug)]
 pub struct QObjectProp {
@@ -235,10 +11,10 @@ pub struct QObjectProp {
 }
 
 impl QObjectProp {
-    pub fn new(type_ref: &TypeRef, name: &str) -> Self {
+    pub fn new<T: TypeRefTrait>(name: &str) -> Self {
         Self {
             name: name.to_string(),
-            type_ref: type_ref.clone(),
+            type_ref: T::type_ref(),
             getter: None,
             setter: None,
             signal: None,
@@ -246,56 +22,28 @@ impl QObjectProp {
         }
     }
 
-    pub fn new_const(type_ref: &TypeRef, name: &str, getter: &str) -> Self {
+    pub fn new_with_type(type_ref: TypeRef, name: &str) -> Self {
         Self {
             name: name.to_string(),
-            type_ref: type_ref.clone(),
-            getter: Some(getter.into()),
+            type_ref,
+            getter: None,
             setter: None,
             signal: None,
-            const_: true,
-        }
-    }
-
-    pub fn new_readonly(type_ref: &TypeRef, name: &str, getter: &str, signal: &str) -> Self {
-        Self {
-            name: name.to_string(),
-            type_ref: type_ref.clone(),
-            getter: Some(getter.into()),
-            setter: None,
-            signal: Some(signal.into()),
             const_: false,
         }
     }
 
-    pub fn new_readwrite(
-        type_ref: &TypeRef,
-        name: &str,
-        getter: &str,
-        setter: &str,
-        signal: &str,
-    ) -> Self {
-        Self {
-            name: name.to_string(),
-            type_ref: type_ref.clone(),
-            getter: Some(getter.into()),
-            setter: Some(setter.into()),
-            signal: Some(signal.into()),
-            const_: false,
-        }
-    }
-
-    pub fn read<T: Into<String>>(&mut self, getter: T) -> &mut Self {
+    pub fn read<T: Into<String>>(mut self, getter: T) -> Self {
         self.getter = Some(getter.into());
         self
     }
 
-    pub fn write<T: Into<String>>(&mut self, setter: T) -> &mut Self {
+    pub fn write<T: Into<String>>(mut self, setter: T) -> Self {
         self.setter = Some(setter.into());
         self
     }
 
-    pub fn notify<T: Into<String>>(&mut self, signal: T) -> &mut Self {
+    pub fn notify<T: Into<String>>(mut self, signal: T) -> Self {
         self.signal = Some(signal.into());
         self
     }
@@ -320,8 +68,13 @@ impl QObjectSignal {
         }
     }
 
-    pub fn arg(mut self, name: &str, type_ref: &TypeRef) -> Self {
-        self.args.push((name.into(), type_ref.clone()));
+    pub fn arg<T: TypeRefTrait>(mut self, name: &str) -> Self {
+        self.args.push((name.into(), T::type_ref()));
+        self
+    }
+
+    pub fn arg_with_type(mut self, name: &str, type_ref: TypeRef) -> Self {
+        self.args.push((name.into(), type_ref));
         self
     }
 }
@@ -357,7 +110,7 @@ impl QObjectMethod {
         self
     }
 
-    pub fn arg_with_type(mut self, name: &str, type_ref: &TypeRef) -> Self {
+    pub fn arg_with_type(mut self, name: &str, type_ref: TypeRef) -> Self {
         self.args.push((name.into(), type_ref.clone()));
         self
     }
@@ -367,7 +120,7 @@ impl QObjectMethod {
         self
     }
 
-    pub fn ret_type(mut self, type_ref: &TypeRef) -> Self {
+    pub fn ret_type(mut self, type_ref: TypeRef) -> Self {
         self.rtype = Some(type_ref.clone());
         self
     }
@@ -428,28 +181,28 @@ impl QObjectConfig {
         }
     }
 
-    pub fn inherit<T: Into<TypeRef>>(&mut self, type_ref: T) -> &mut Self {
-        self.base_class = type_ref.into();
+    pub fn inherit(&mut self, type_ref: TypeRef) -> &mut Self {
+        self.base_class = type_ref;
         self
     }
 
-    pub fn property<T: Into<QObjectProp>>(&mut self, prop: T) -> &mut Self {
-        self.properties.push(prop.into());
+    pub fn property(&mut self, prop: QObjectProp) -> &mut Self {
+        self.properties.push(prop);
         self
     }
 
-    pub fn method<T: Into<QObjectMethod>>(&mut self, meth: T) -> &mut Self {
-        self.methods.push(meth.into().attach(self));
+    pub fn method(&mut self, meth: QObjectMethod) -> &mut Self {
+        self.methods.push(meth.attach(self));
         self
     }
 
-    pub fn signal<T: Into<QObjectSignal>>(&mut self, signal: T) -> &mut Self {
-        self.signals.push(signal.into());
+    pub fn signal(&mut self, signal: QObjectSignal) -> &mut Self {
+        self.signals.push(signal);
         self
     }
 
-    pub fn slot<T: Into<QObjectMethod>>(&mut self, slot: T) -> &mut Self {
-        self.slots.push(slot.into().attach(self));
+    pub fn slot(&mut self, slot: QObjectMethod) -> &mut Self {
+        self.slots.push(slot.attach(self));
         self
     }
 

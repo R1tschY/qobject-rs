@@ -1,12 +1,12 @@
 include!(concat!(env!("OUT_DIR"), "/qffi_TestObject.rs"));
 
 pub struct TestObjectPrivate {
-    qobject: *mut TestObject,
+    _qobject: *mut TestObject,
 }
 
 impl TestObjectPrivate {
     pub fn new(qobject: *mut TestObject) -> Self {
-        Self { qobject }
+        Self { _qobject: qobject }
     }
 
     pub fn slot0(&mut self) {}

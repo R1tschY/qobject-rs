@@ -1,5 +1,4 @@
-use crate::qobject::{TypeRef, TypeRefTrait};
-use std::collections::HashSet;
+use crate::typeref::{TypeRef, TypeRefTrait};
 
 pub(crate) enum ImplCode {
     Cpp(String),
