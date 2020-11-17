@@ -2,16 +2,14 @@ include!(concat!(env!("OUT_DIR"), "/qffi_TestObject.rs"));
 
 pub struct TestObjectPrivate {
     _qobject: *mut TestObject,
-    prop_rw: String,
-    prop_w: String,
+    prop_rw: i32,
 }
 
 impl TestObjectPrivate {
     pub fn new(qobject: *mut TestObject) -> Self {
         Self {
             _qobject: qobject,
-            prop_rw: "".to_string(),
-            prop_w: "".to_string(),
+            prop_rw: 42,
         }
     }
 
@@ -19,16 +17,12 @@ impl TestObjectPrivate {
         "Hello Qt!".into()
     }
 
-    pub fn prop_rw(&self) -> qt5qml::core::QString {
-        (&self.prop_rw).into()
+    pub fn prop_rw(&self) -> i32 {
+        self.prop_rw
     }
 
-    pub fn set_prop_rw(&mut self, value: &qt5qml::core::QString) {
-        self.prop_rw = value.into();
-    }
-
-    pub fn set_prop_w(&mut self, value: &qt5qml::core::QString) {
-        self.prop_w = value.into();
+    pub fn set_prop_rw(&mut self, value: i32) {
+        self.prop_rw = value;
     }
 }
 
@@ -62,7 +56,6 @@ mod tests {
         let props = get_props(meta);
         assert!(props.contains_key("prop_rw"));
         assert!(props.contains_key("prop_r"));
-        assert!(props.contains_key("prop_w"));
     }
 
     #[test]
@@ -75,15 +68,6 @@ mod tests {
     }
 
     #[test]
-    fn write_only_prop_not_readable() {
-        let obj = TestObject::new(ptr::null_mut());
-        let props = get_props(obj.meta_object());
-
-        let value = props.get("prop_w").unwrap().read(obj.as_qobject());
-        assert_eq!(value, QVariant::from(""));
-    }
-
-    #[test]
     fn written_value_can_be_read() {
         let mut obj = TestObject::new(ptr::null_mut());
         let props = get_props(obj.meta_object());
@@ -91,10 +75,10 @@ mod tests {
         assert!(props
             .get("prop_rw")
             .unwrap()
-            .write(obj.as_qobject_mut(), &"test".into()));
+            .write(obj.as_qobject_mut(), &5.into()));
         assert_eq!(
             props.get("prop_rw").unwrap().read(obj.as_qobject()),
-            "test".into()
+            5.into()
         );
     }
 
@@ -113,7 +97,7 @@ mod tests {
     fn write_with_wrong_type_not_accepted() {
         let mut obj = TestObject::new(ptr::null_mut());
         let props = get_props(obj.meta_object());
-        let value: QVariant = 1i64.into();
+        let value: QVariant = "Hello".into();
         dbg!(&value);
 
         assert!(!props
