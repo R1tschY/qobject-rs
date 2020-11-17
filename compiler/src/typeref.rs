@@ -200,14 +200,14 @@ macro_rules! impl_type_ref_trait {
     };
 }
 
-impl_type_ref_trait!(i8 => "int8_t", true, "cstdint");
-impl_type_ref_trait!(u8 => "uint8_t", true, "cstdint");
-impl_type_ref_trait!(i16 => "int16_t", true, "cstdint");
-impl_type_ref_trait!(u16 => "uint16_t", true, "cstdint");
-impl_type_ref_trait!(i32 => "int32_t", true, "cstdint");
-impl_type_ref_trait!(u32 => "uint32_t", true, "cstdint");
-impl_type_ref_trait!(i64 => "int64_t", true, "cstdint");
-impl_type_ref_trait!(u64 => "uint64_t", true, "cstdint");
+impl_type_ref_trait!(i8 => "qint8", true, "QtGlobal");
+impl_type_ref_trait!(u8 => "quint8", true, "QtGlobal");
+impl_type_ref_trait!(i16 => "qint16", true, "QtGlobal");
+impl_type_ref_trait!(u16 => "quint16", true, "QtGlobal");
+impl_type_ref_trait!(i32 => "qint32", true, "QtGlobal");
+impl_type_ref_trait!(u32 => "quint32", true, "QtGlobal");
+impl_type_ref_trait!(i64 => "qint64", true, "QtGlobal");
+impl_type_ref_trait!(u64 => "quint64", true, "QtGlobal");
 impl_type_ref_trait!(f32 => "float", true);
 impl_type_ref_trait!(f64 => "double", true);
 impl_type_ref_trait!(bool => "bool", true);
