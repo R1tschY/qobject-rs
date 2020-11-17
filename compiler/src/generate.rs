@@ -444,7 +444,7 @@ impl {0} {{
         unsafe {{ qt5qml::QBox::from_raw(Qffi_{0}_new(parent)) }}
     }}
 
-    pub fn get_private<'a>(&'a mut self) -> &'a mut {0}Private {{
+    fn get_private<'a>(&'a mut self) -> &'a mut {0}Private {{
         unsafe {{ &mut *(Qffi_{0}_get_private(self) as *mut {0}Private) }}
     }}"#,
                 obj.name
