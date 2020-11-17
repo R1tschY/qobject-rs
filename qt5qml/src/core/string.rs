@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::ffi::{CStr, CString};
 use std::fmt;
 use std::fmt::{Debug, Display};
@@ -5,7 +6,6 @@ use std::fmt::{Debug, Display};
 cpp! {{
     #include <QString>
     #include <QByteArray>
-    #include <algorithm>
 }}
 
 cpp_class!(
@@ -17,6 +17,14 @@ impl QString {
     #[inline]
     pub fn new() -> Self {
         QString::default()
+    }
+
+    pub fn from_utf8_option(input: Option<&str>) -> Self {
+        if let Some(ref s) = input {
+            QString::from_utf8(s)
+        } else {
+            QString::new()
+        }
     }
 
     pub fn from_utf8(input: &str) -> Self {
@@ -122,6 +130,46 @@ impl Display for QString {
 impl Debug for QString {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         (&self.to_string() as &dyn Debug).fmt(f)
+    }
+}
+
+pub trait ToQString {
+    fn to_qstring(&self) -> QString;
+}
+
+impl ToQString for &str {
+    fn to_qstring(&self) -> QString {
+        QString::from_utf8(&self)
+    }
+}
+
+impl ToQString for String {
+    fn to_qstring(&self) -> QString {
+        QString::from_utf8(&self)
+    }
+}
+
+impl<'a> ToQString for Cow<'a, str> {
+    fn to_qstring(&self) -> QString {
+        QString::from_utf8(&self)
+    }
+}
+
+impl ToQString for Option<&str> {
+    fn to_qstring(&self) -> QString {
+        QString::from_utf8_option(self.clone())
+    }
+}
+
+impl ToQString for Option<String> {
+    fn to_qstring(&self) -> QString {
+        QString::from_utf8_option(self.as_ref().map(|s| &s as &str))
+    }
+}
+
+impl<'a> ToQString for Option<Cow<'a, str>> {
+    fn to_qstring(&self) -> QString {
+        QString::from_utf8_option(self.as_ref().map(|s| &s as &str))
     }
 }
 
