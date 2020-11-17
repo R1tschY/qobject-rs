@@ -1,6 +1,7 @@
-use crate::core::{QObject, QVariant};
+use crate::core::{ConnectionType, ConnectionTypeKind, QObject, QString, QVariant};
 use std::ffi::{c_void, CStr};
 use std::os::raw::c_char;
+use std::ptr;
 
 cpp! {{
     #include <QMetaObject>
@@ -49,6 +50,13 @@ impl QMetaObject {
             index: self.property_offset(),
             count: self.property_count(),
         }
+    }
+
+    pub fn build_invoke_method<'a>(
+        obj: &'a mut QObject,
+        member: &'static CStr,
+    ) -> InvokeMethodBuilder<'a, 'static> {
+        InvokeMethodBuilder::new(obj, member)
     }
 }
 
@@ -260,3 +268,153 @@ impl QMetaProperty {
 }
 
 cpp_class!(#[derive(Clone)] pub unsafe struct QMetaMethod as "QMetaMethod");
+
+pub trait QtMetaType {
+    fn name() -> &'static CStr;
+}
+
+impl QtMetaType for QString {
+    fn name() -> &'static CStr {
+        cstr!("QString")
+    }
+}
+
+#[repr(C)]
+#[derive(Copy, Clone)]
+struct QGenericArgument {
+    data: *const c_void,
+    name: *const c_char,
+}
+
+impl QGenericArgument {
+    pub fn new<T: QtMetaType>(data: &T) -> Self {
+        Self::from_raw(T::name().as_ptr(), data as *const _ as *const c_void)
+    }
+
+    pub fn new_mut<T: QtMetaType>(data: &mut T) -> Self {
+        Self::from_raw(T::name().as_ptr(), data as *mut _ as *const c_void)
+    }
+
+    pub unsafe fn new_unchecked<T>(ty: &'static CStr, data: &T) -> Self {
+        Self::from_raw(ty.as_ptr(), data as *const _ as *const c_void)
+    }
+
+    pub unsafe fn new_mut_unchecked<T>(ty: &'static CStr, data: &mut T) -> Self {
+        Self::from_raw(ty.as_ptr(), data as *mut _ as *const c_void)
+    }
+
+    pub fn from_raw(name: *const c_char, data: *const c_void) -> Self {
+        Self { name, data }
+    }
+}
+
+impl Default for QGenericArgument {
+    fn default() -> Self {
+        Self::from_raw(ptr::null(), ptr::null())
+    }
+}
+
+pub struct InvokeMethodBuilder<'a, 'b> {
+    obj: &'a mut QObject,
+    member: &'b CStr,
+    ret: Option<QGenericArgument>,
+    type_: ConnectionType,
+    arg_len: usize,
+    args: [QGenericArgument; 10],
+}
+
+impl<'a, 'b> InvokeMethodBuilder<'a, 'b> {
+    pub fn new(obj: &'a mut QObject, member: &'b CStr) -> Self {
+        Self {
+            obj,
+            member,
+            ret: None,
+            type_: ConnectionTypeKind::Auto.into(),
+            arg_len: 0,
+            args: [QGenericArgument::default(); 10],
+        }
+    }
+
+    pub fn arg<T: QtMetaType>(&mut self, t: &T) -> &mut Self {
+        assert!(self.arg_len < 10);
+        self.args[self.arg_len] = QGenericArgument::new(t);
+        self.arg_len += 1;
+        self
+    }
+
+    pub fn arg_mut<T: QtMetaType>(&mut self, t: &mut T) -> &mut Self {
+        assert!(self.arg_len < 10);
+        self.args[self.arg_len] = QGenericArgument::new_mut(t);
+        self.arg_len += 1;
+        self
+    }
+
+    pub unsafe fn arg_unchecked<T>(&mut self, ty: &'static CStr, data: &T) -> &mut Self {
+        assert!(self.arg_len < 10);
+        self.args[self.arg_len] = QGenericArgument::new_unchecked(ty, data);
+        self.arg_len += 1;
+        self
+    }
+
+    pub unsafe fn arg_mut_unchecked<T>(&mut self, ty: &'static CStr, data: &mut T) -> &mut Self {
+        assert!(self.arg_len < 10);
+        self.args[self.arg_len] = QGenericArgument::new_mut_unchecked(ty, data);
+        self.arg_len += 1;
+        self
+    }
+
+    pub fn ret<T: QtMetaType>(&mut self, t: &mut T) -> &mut Self {
+        self.ret = Some(QGenericArgument::new_mut(t));
+        self
+    }
+
+    pub unsafe fn ret_unchecked<T>(&mut self, ty: &'static CStr, t: &mut T) -> &mut Self {
+        self.ret = Some(QGenericArgument::new_mut_unchecked(ty, t));
+        self
+    }
+
+    pub fn type_(&mut self, type_: impl Into<ConnectionType>) -> &mut Self {
+        self.type_ = type_.into();
+        self
+    }
+
+    pub unsafe fn invoke(&mut self) -> bool {
+        let obj = self.obj as *mut QObject;
+        let member = self.member.as_ptr();
+        let args = self.args.as_ptr();
+        let ty: i32 = self.type_.into();
+
+        if let Some(ref ret) = self.ret {
+            cpp!([
+                obj as "QObject*",
+                member as "const char *",
+                ty as "qint32",
+                ret as "const QGenericReturnArgument*",
+                args as "const QGenericArgument*"
+            ] -> bool as "bool" {
+                return QMetaObject::invokeMethod(
+                    obj, member, Qt::ConnectionType(ty), *ret, args[0], args[1], args[2], args[3], args[4], args[5],
+                    args[6], args[7], args[8], args[9]);
+            })
+        } else {
+            cpp!([
+                obj as "QObject*",
+                member as "const char *",
+                ty as "qint32",
+                args as "const QGenericArgument*"
+            ] -> bool as "bool" {
+                return QMetaObject::invokeMethod(
+                    obj, member, Qt::ConnectionType(ty), args[0], args[1], args[2], args[3], args[4], args[5], args[6],
+                    args[7], args[8], args[9]);
+            })
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn check() {}
+}
