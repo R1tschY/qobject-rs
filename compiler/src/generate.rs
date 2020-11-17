@@ -235,6 +235,8 @@ fn generate_cpp(moc_name: &str, objects: &[&QObjectConfig], ffi: &FfiBridge) -> 
 
 impl GenerateCppCode for QObjectConfig {
     fn fill_ffi_functions(&self, ffi: &mut FfiBridge) {
+        let class_type = TypeRef::new(self.name.clone(), self.name.clone(), false, None);
+
         for meth in self.methods.iter().chain(self.slots.iter()) {
             let mut args = meth.args.clone();
             args.insert(0, ("self_".into(), TypeRef::void_mut_ptr()));
@@ -281,7 +283,7 @@ impl GenerateCppCode for QObjectConfig {
             vec![("self_".into(), TypeRef::void_mut_ptr())],
             None,
             ImplCode::Rust(format!(
-                "unsafe {{ Box::from_raw(self_ as *mut {}Private) }};",
+                "unsafe {{ drop(Box::from_raw(self_ as *mut {}Private)) }};",
                 &self.name
             )),
             None,
@@ -289,8 +291,15 @@ impl GenerateCppCode for QObjectConfig {
         ffi.cpp_function(FfiFunction::new_complete(
             &format!("Qffi_{}_new", &self.name),
             vec![("parent".into(), TypeRef::qobject_ptr())],
-            Some(TypeRef::qobject_ptr()),
+            Some(class_type.clone().with_mut_ptr()),
             ImplCode::Cpp(format!("return new {}(parent);", &self.name)),
+            None,
+        ));
+        ffi.cpp_function(FfiFunction::new_complete(
+            &format!("Qffi_{}_get_private", &self.name),
+            vec![("self_".into(), class_type.clone().with_mut_ptr())],
+            Some(TypeRef::void_mut_ptr()),
+            ImplCode::Cpp("return self_->_d;".to_string()),
             None,
         ));
 
@@ -382,7 +391,7 @@ impl GenerateCppCode for QObjectConfig {
                 .map(|slot| generate_method_impl(slot).into()),
         );
         lines.push("".into());
-        lines.push("private:".into());
+        lines.push("public:".into());
         lines.push("  void* _d;".into());
         lines.push("".into());
         for friend in friend_funcs {
@@ -432,7 +441,11 @@ impl qt5qml::core::QObjectRef for {0} {{
 
 impl {0} {{
     pub fn new(parent: *mut qt5qml::core::QObject) -> qt5qml::QBox<{0}> {{
-        unsafe {{ qt5qml::QBox::from_raw(Qffi_{0}_new(parent) as *mut _ as *mut {0}) }}
+        unsafe {{ qt5qml::QBox::from_raw(Qffi_{0}_new(parent)) }}
+    }}
+
+    pub fn get_private<'a>(&'a mut self) -> &'a mut {0}Private {{
+        unsafe {{ &mut *(Qffi_{0}_get_private(self) as *mut {0}Private) }}
     }}"#,
                 obj.name
             )

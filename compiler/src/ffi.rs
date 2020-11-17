@@ -161,7 +161,7 @@ impl FfiFunction {
             _ => panic!("No Rust body for {}", self.name),
         };
         format!(
-            "#[no_mangle] pub extern \"C\" {} {{\n  {}\n}}",
+            "#[no_mangle] extern \"C\" {} {{\n  {}\n}}",
             self.generate_rust_sig(),
             body
         )
