@@ -11,4 +11,5 @@ qt5qml = { path = "../../qt5qml" }
 
 [build-dependencies]
 qobject-compiler = { path = "../../compiler" }
+qt5qml = { path = "../../qt5qml" }
 pkg-config = "0.3"

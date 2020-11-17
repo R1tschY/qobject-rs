@@ -1,5 +1,6 @@
 use qobject_compiler::moc::MocConfig;
-use qobject_compiler::{CcBuild, QObjectBuild, QObjectMethod};
+use qobject_compiler::{CcBuild, QObjectBuild, QObjectMethod, QObjectProp};
+use qt5qml::core::QString;
 
 fn main() {
     let config = pkg_config::probe_library("Qt5Core").unwrap();
@@ -12,7 +13,15 @@ fn main() {
     }
 
     QObjectBuild::new("TestObject")
-        .slot(QObjectMethod::new("slot0"))
+        .property(QObjectProp::new::<i32>("slotCalls").read("slotCalls"))
+        .method(QObjectMethod::new("slotCalls").ret::<i32>())
+        .slot(QObjectMethod::new("slot"))
+        .slot(QObjectMethod::new("slotWithArgs").arg::<&QString>("strArg"))
+        .slot(
+            QObjectMethod::new("echoSlot")
+                .arg::<&QString>("arg")
+                .ret::<QString>(),
+        )
         .qml(false)
         .build(&cpp, &moc);
 }
