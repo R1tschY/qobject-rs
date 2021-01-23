@@ -89,6 +89,7 @@ pub struct QObjectMethod {
     pub(crate) invokable: bool,
     pub(crate) const_: bool,
     pub(crate) override_: bool,
+    pub(crate) proxy_class: Option<String>,
 }
 
 impl QObjectMethod {
@@ -102,6 +103,7 @@ impl QObjectMethod {
             invokable: false,
             const_: false,
             override_: false,
+            proxy_class: None,
         }
     }
 
@@ -132,6 +134,12 @@ impl QObjectMethod {
 
     pub fn invokable(mut self) -> Self {
         self.invokable = true;
+        self
+    }
+
+    /// Create proxy that forward call from Rust to C++
+    pub fn proxy(mut self, cls: &str) -> Self {
+        self.proxy_class = Some(cls.to_string());
         self
     }
 

@@ -213,6 +213,7 @@ impl_type_ref_trait!(f64 => "double", true);
 impl_type_ref_trait!(bool => "bool", true);
 impl_type_ref_trait!(std::os::raw::c_void => "void", false);
 impl_type_ref_trait!(qt5qml::core::QModelIndex => "QModelIndex", false, "QModelIndex");
+impl_type_ref_trait!(qt5qml::core::QObject => "QObject", false, "QObject");
 impl_type_ref_trait!(qt5qml::core::QString => "QString", false, "QString");
 impl_type_ref_trait!(qt5qml::core::QByteArray => "QByteArray", false, "QByteArray");
 impl_type_ref_trait!(qt5qml::core::QVariant => "QVariant", false, "QVariant");

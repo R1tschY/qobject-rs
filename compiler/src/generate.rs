@@ -134,11 +134,17 @@ fn generate_method_impl(meth: &QObjectMethod) -> String {
 }
 
 fn generate_ffi_impl(meth: &QObjectMethod) -> String {
-    let mut params: Vec<String> = meth
-        .args
-        .iter()
-        .map(|arg| format!("std::forward<{}>({})", arg.1.cpp_type(), arg.0))
-        .collect();
+    let mut params: Vec<&str> = meth.args.iter().map(|arg| &arg.0 as &str).collect();
+
+    if let Some(proxy_class) = &meth.proxy_class {
+        return format!(
+            "return {}::{}({});",
+            proxy_class,
+            &meth.name,
+            params.join(", ")
+        );
+    }
+
     params.insert(0, "_d".into());
     if let Some(rty) = &meth.rtype {
         if rty.return_safe() {
@@ -233,38 +239,71 @@ fn generate_cpp(moc_name: &str, objects: &[&QObjectConfig], ffi: &FfiBridge) -> 
     lines.join("\n")
 }
 
+fn gen_cpp_meth_call(meth: &QObjectMethod) -> String {
+    let params: Vec<&str> = meth.args.iter().map(|a| &a.0 as &str).collect();
+    match &meth.rtype {
+        Some(ref rty) if !rty.return_safe() => {
+            return format!(
+                "new(out__) {}(std::move(self_.{}({})));",
+                rty.cpp_type(),
+                &meth.name,
+                params.join(", ")
+            )
+        }
+        _ => format!("return self_.{}({});", &meth.name, params.join(", ")),
+    }
+}
+
+fn gen_rust_meth_call(cls: &str, meth: &QObjectMethod) -> String {
+    let params: Vec<&str> = meth.args.iter().map(|a| &a.0 as &str).collect();
+    let ret = match &meth.rtype {
+        Some(ref rty) if !rty.return_safe() => "*out__ = ",
+        _ => "",
+    };
+    format!(
+        "unsafe {{ {}(*(self_ as *mut {}Private)).{}({}) }}",
+        ret,
+        cls,
+        to_snake_case(&meth.name),
+        params.join(", ")
+    )
+}
+
 impl GenerateCppCode for QObjectConfig {
     fn fill_ffi_functions(&self, ffi: &mut FfiBridge) {
         let class_type = TypeRef::new(self.name.clone(), self.name.clone(), false, None);
 
         for meth in self.methods.iter().chain(self.slots.iter()) {
-            let mut args = meth.args.clone();
-            args.insert(0, ("self_".into(), TypeRef::void_mut_ptr()));
-
-            let params: Vec<String> = meth.args.iter().map(|a| a.0.clone()).collect();
-            let call = format!(
-                "unsafe {{ {}(*(self_ as *mut {}Private)).{}({}) }}",
-                if let Some(ref rty) = &meth.rtype {
-                    if rty.return_safe() {
-                        ""
-                    } else {
-                        "*out__ = "
-                    }
+            if let Some(_proxy_class) = &meth.proxy_class {
+                let mut args = meth.args.clone();
+                let cls_ref = if meth.const_ {
+                    class_type.clone().with_const_ref()
                 } else {
-                    ""
-                },
-                &self.name,
-                to_snake_case(&meth.name),
-                params.join(", ")
-            );
-            ffi.rust_function(FfiFunction::new_complete(
-                meth.get_ffi_name(),
-                args,
-                meth.rtype.clone(),
-                ImplCode::Rust(call),
-                None,
-            ));
+                    class_type.clone().with_mut_ref()
+                };
+                args.insert(0, ("self_".into(), cls_ref));
+
+                ffi.cpp_function(FfiFunction::new_complete(
+                    meth.get_ffi_name(),
+                    args,
+                    meth.rtype.clone(),
+                    ImplCode::Cpp(gen_cpp_meth_call(meth)),
+                    None,
+                ));
+            } else {
+                let mut args = meth.args.clone();
+                args.insert(0, ("self_".into(), TypeRef::void_mut_ptr()));
+
+                ffi.rust_function(FfiFunction::new_complete(
+                    meth.get_ffi_name(),
+                    args,
+                    meth.rtype.clone(),
+                    ImplCode::Rust(gen_rust_meth_call(&self.name, &meth)),
+                    None,
+                ));
+            }
         }
+
         ffi.rust_function(FfiFunction::new_complete(
             &format!("Qffi_{}_private_new", &self.name),
             vec![(
@@ -313,7 +352,7 @@ impl GenerateCppCode for QObjectConfig {
                 ),
             );
 
-            let params: Vec<String> = signal.args.iter().map(|a| a.0.clone()).collect();
+            let params: Vec<&str> = signal.args.iter().map(|a| &a.0 as &str).collect();
             let body = format!("Q_EMIT self_->{}({});", signal.name, params.join(", "));
             ffi.cpp_function(FfiFunction::new_complete(
                 &format!("Qffi_{}_{}", self.name, signal.name),
@@ -444,6 +483,7 @@ impl {0} {{
         unsafe {{ qt5qml::QBox::from_raw(Qffi_{0}_new(parent)) }}
     }}
 
+    #[allow(unused)]
     fn get_private<'a>(&'a mut self) -> &'a mut {0}Private {{
         unsafe {{ &mut *(Qffi_{0}_get_private(self) as *mut {0}Private) }}
     }}"#,
@@ -453,6 +493,68 @@ impl {0} {{
         );
 
         lines.push("".into());
+        for meth in &obj.methods {
+            if meth.proxy_class.is_none() {
+                continue;
+            }
+
+            let mut args: Vec<String> = meth
+                .args
+                .iter()
+                .map(|arg| format!("{}: {}", arg.0, arg.1.rust_type()))
+                .collect();
+            if meth.const_ {
+                args.insert(0, "&self".into());
+            } else {
+                args.insert(0, "&mut self".into());
+            }
+            let mut params: Vec<&str> = meth.args.iter().map(|arg| &arg.0 as &str).collect();
+            params.insert(0, "self".into());
+
+            match &meth.rtype {
+                Some(ref rty) if !rty.return_safe() => {
+                    lines.push(
+                        format!(
+                            r#"
+    pub(crate) fn {1}({2}) -> {4} {{
+        let mut out__ = std::mem::MaybeUninit::<{4}>::uninit();
+        unsafe {{ {0}({3}, out__.as_mut_ptr()); }}
+        unsafe {{ out__.assume_init() }}
+    }}
+"#,
+                            meth.get_ffi_name(),
+                            to_snake_case(&meth.name),
+                            args.join(", "),
+                            params.join(", "),
+                            rty.rust_type()
+                        )
+                        .into(),
+                    );
+                }
+                _ => {
+                    lines.push(
+                        format!(
+                            r#"
+    pub(crate) fn {1}({2}) -> {4} {{
+        unsafe {{ {0}({3}) }}
+    }}
+"#,
+                            meth.get_ffi_name(),
+                            to_snake_case(&meth.name),
+                            args.join(", "),
+                            params.join(", "),
+                            meth.rtype
+                                .as_ref()
+                                .map(|rty| rty.rust_type())
+                                .unwrap_or("()")
+                        )
+                        .into(),
+                    );
+                }
+            };
+        }
+
+        lines.push("".into());
         for signal in &obj.signals {
             let mut args: Vec<String> = signal
                 .args
@@ -460,17 +562,18 @@ impl {0} {{
                 .map(|arg| format!("{}: {}", arg.0, arg.1.rust_type()))
                 .collect();
             args.insert(0, "&mut self".into());
-            let mut params: Vec<String> = signal.args.iter().map(|arg| arg.0.clone()).collect();
+            let mut params: Vec<&str> = signal.args.iter().map(|arg| &arg.0 as &str).collect();
             params.insert(0, "self".into());
             lines.push(
                 format!(
                     r#"
-    pub(crate) fn {1}({2}) {{
-        unsafe {{ Qffi_{0}_{1}({3}); }}
+    pub(crate) fn {2}({3}) {{
+        unsafe {{ Qffi_{0}_{1}({4}); }}
     }}
 "#,
                     obj.name,
-                    signal.name,
+                    &signal.name,
+                    to_snake_case(&signal.name),
                     args.join(", "),
                     params.join(", ")
                 )
@@ -546,10 +649,7 @@ mod tests {
                 .arg_with_type("arg1", TypeRef::qt_core_object("CppType1"))
                 .attach(&QObjectConfig::new("Test"))),
         );
-        assert_eq!(
-            "Qffi_Test_test(_d, std::forward<CppType0>(arg0), std::forward<CppType1>(arg1));",
-            def.trim()
-        );
+        assert_eq!("Qffi_Test_test(_d, arg0, arg1);", def.trim());
     }
 
     #[test]
@@ -563,7 +663,7 @@ mod tests {
         assert_eq!(
             r#"
     RetCppType out__;
-    Qffi_Test_test(_d, std::forward<CppType0>(arg0), &out__);
+    Qffi_Test_test(_d, arg0, &out__);
     return out__;"#
                 .trim(),
             def.trim()

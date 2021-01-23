@@ -11,7 +11,7 @@ use crate::build::build;
 use crate::moc::MocConfig;
 use crate::qobject::QObjectConfig;
 pub use crate::qobject::{QObjectMethod, QObjectProp, QObjectSignal};
-pub use crate::typeref::{Include, TypeRef};
+pub use crate::typeref::{Include, TypeRef, TypeRefTrait};
 
 pub mod ffi;
 pub mod generate;

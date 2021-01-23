@@ -2,10 +2,12 @@
 members = [
     "compiler",
     "qt5qml",
+    "derive",
     "tests/properties",
     "tests/signals",
     "tests/listmodel",
     "tests/slots",
+    "tests/methods",
     "examples/qobject",
     "examples/listmodel"
 ]

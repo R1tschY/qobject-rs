@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 include!(concat!(env!("OUT_DIR"), "/qffi_TestObject.rs"));
 
 pub struct TestObjectPrivate {

@@ -410,11 +410,3 @@ impl<'a, 'b> InvokeMethodBuilder<'a, 'b> {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn check() {}
-}

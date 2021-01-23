@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use qt5qml::core::{QMetaObject, QMetaProperty, QObject, QObjectRef, QString, ToQString};
 use qt5qml::cstr;
 use std::collections::HashMap;

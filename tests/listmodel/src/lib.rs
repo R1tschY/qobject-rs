@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use qt5qml::core::{QModelIndex, QVariant};
 include!(concat!(env!("OUT_DIR"), "/qffi_TestObject.rs"));
 
