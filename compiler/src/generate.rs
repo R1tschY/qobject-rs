@@ -1,66 +1,34 @@
 use std::borrow::Cow;
 use std::collections::HashSet;
 use std::ffi::CStr;
+use std::fmt;
 use std::fmt::Write;
 use std::iter::FromIterator;
 
+use crate::dependent::Dependent;
 use crate::ffi::{FfiBridge, FfiFunction, ImplCode};
+use crate::generate_rust::generate_rust;
 use crate::qobject::{QObjectConfig, QObjectMethod, QObjectProp, QObjectSignal};
 use crate::typeref::{Include, TypeRef};
 use crate::utils::to_snake_case;
-use std::fmt;
-
-pub trait Dependent {
-    fn dependencies(&self, includes: &mut HashSet<Include>);
-}
-
-impl Dependent for QObjectProp {
-    fn dependencies(&self, includes: &mut HashSet<Include>) {
-        if let Some(include) = self.type_ref.include() {
-            includes.insert(include.clone());
-        }
-    }
-}
-
-impl Dependent for QObjectMethod {
-    fn dependencies(&self, includes: &mut HashSet<Include>) {
-        if let Some(rtype) = &self.rtype {
-            if let Some(include) = rtype.include() {
-                includes.insert(include.clone());
-            }
-        }
-        includes.extend(self.args.iter().flat_map(|(_, ty)| ty.include().clone()));
-    }
-}
-
-impl Dependent for QObjectSignal {
-    fn dependencies(&self, includes: &mut HashSet<Include>) {
-        includes.extend(self.args.iter().flat_map(|(_, ty)| ty.include().clone()));
-    }
-}
-
-impl Dependent for QObjectConfig {
-    fn dependencies(&self, includes: &mut HashSet<Include>) {
-        self.properties
-            .iter()
-            .for_each(|p| p.dependencies(includes));
-        self.methods.iter().for_each(|p| p.dependencies(includes));
-        self.signals.iter().for_each(|p| p.dependencies(includes));
-        if let Some(include) = self.base_class.include() {
-            includes.insert(include.clone());
-        }
-        includes.insert(Include::System("utility".into())); // required for std::forward
-        if self.qml {
-            includes.insert(Include::System("QtQml".into()));
-        }
-    }
-}
 
 trait GenerateCppCode: Dependent {
     fn fill_ffi_functions(&self, ffi: &mut FfiBridge);
     fn generate_forward_definitions(&self, result: &mut String);
     fn generate_classes(&self, result: &mut String, friend_func: &[&FfiFunction]);
     fn generate_implementations(&self, result: &mut String);
+}
+
+pub fn generate(moc_name: &str, objects: &[&QObjectConfig]) -> (String, String) {
+    let mut ffi = FfiBridge::new();
+    for obj in objects {
+        obj.fill_ffi_functions(&mut ffi);
+    }
+
+    (
+        generate_cpp(moc_name, objects, &ffi),
+        generate_rust(objects, &ffi),
+    )
 }
 
 fn generate_include(include: &Include) -> String {
@@ -170,18 +138,6 @@ fn generate_signal(signal: &QObjectSignal) -> String {
     format!(
         "{};",
         generate_base_function_def(&signal.name, &signal.args, &None),
-    )
-}
-
-pub fn generate(moc_name: &str, objects: &[&QObjectConfig]) -> (String, String) {
-    let mut ffi = FfiBridge::new();
-    for obj in objects {
-        obj.fill_ffi_functions(&mut ffi);
-    }
-
-    (
-        generate_cpp(moc_name, objects, &ffi),
-        generate_rust(objects, &ffi),
     )
 }
 
@@ -464,158 +420,6 @@ impl GenerateCppCode for QObjectConfig {
     }
 
     fn generate_implementations(&self, _result: &mut String) {}
-}
-
-fn generate_rust(objects: &[&QObjectConfig], ffi: &FfiBridge) -> String {
-    let mut result = String::with_capacity(4 * 1024);
-
-    // C++ extern
-    result.push_str("extern \"C\" {\n");
-    for function in ffi.get_cpp_functions() {
-        result.push_str(&function.generate_rust_def());
-        result.push('\n');
-    }
-    result.push_str("}\n");
-    result.push('\n');
-
-    // Rust functions
-    for function in ffi.get_rust_functions() {
-        result.push_str(&function.generate_rust_impl());
-        result.push('\n');
-    }
-
-    // Objects
-    for obj in objects {
-        let _ = writeln!(
-            result,
-            r#"
-#[repr(C)]
-pub struct {0} {{
-    _private: [u8; 0],
-}}
-
-impl qt5qml::core::QObjectRef for {0} {{
-    fn as_qobject_mut(&mut self) -> &mut qt5qml::core::QObject {{
-        unsafe {{ &mut *(self as *mut _ as *mut qt5qml::core::QObject) }}
-    }}
-
-    fn as_qobject(&self) -> &qt5qml::core::QObject {{
-        unsafe {{ &*(self as *const _ as *const qt5qml::core::QObject) }}
-    }}
-}}
-
-impl {0} {{
-    pub fn new(parent: *mut qt5qml::core::QObject) -> qt5qml::QBox<{0}> {{
-        unsafe {{ qt5qml::QBox::from_raw(Qffi_{0}_new(parent)) }}
-    }}
-
-    #[allow(unused)]
-    fn get_private<'a>(&'a mut self) -> &'a mut {0}Private {{
-        unsafe {{ &mut *(Qffi_{0}_get_private(self) as *mut {0}Private) }}
-    }}"#,
-            obj.name
-        );
-
-        result.push('\n');
-        for meth in &obj.methods {
-            if meth.proxy_class.is_none() {
-                continue;
-            }
-
-            let mut args: Vec<String> = meth
-                .args
-                .iter()
-                .map(|arg| format!("{}: {}", arg.0, arg.1.rust_type()))
-                .collect();
-            if meth.const_ {
-                args.insert(0, "&self".into());
-            } else {
-                args.insert(0, "&mut self".into());
-            }
-            let mut params: Vec<&str> = meth.args.iter().map(|arg| &arg.0 as &str).collect();
-            params.insert(0, "self".into());
-
-            match &meth.rtype {
-                Some(ref rty) if !rty.return_safe() => {
-                    let _ = writeln!(
-                        result,
-                        r#"
-    pub(crate) fn {1}({2}) -> {4} {{
-        let mut out__ = std::mem::MaybeUninit::<{4}>::uninit();
-        unsafe {{ {0}({3}, out__.as_mut_ptr()); }}
-        unsafe {{ out__.assume_init() }}
-    }}
-"#,
-                        meth.get_ffi_name(),
-                        to_snake_case(&meth.name),
-                        args.join(", "),
-                        params.join(", "),
-                        rty.rust_type()
-                    );
-                }
-                _ => {
-                    let _ = writeln!(
-                        result,
-                        r#"
-    pub(crate) fn {1}({2}) -> {4} {{
-        unsafe {{ {0}({3}) }}
-    }}
-"#,
-                        meth.get_ffi_name(),
-                        to_snake_case(&meth.name),
-                        args.join(", "),
-                        params.join(", "),
-                        meth.rtype
-                            .as_ref()
-                            .map(|rty| rty.rust_type())
-                            .unwrap_or("()")
-                    );
-                }
-            };
-        }
-
-        result.push('\n');
-        for signal in &obj.signals {
-            let mut args: Vec<String> = signal
-                .args
-                .iter()
-                .map(|arg| format!("{}: {}", arg.0, arg.1.rust_type()))
-                .collect();
-            args.insert(0, "&mut self".into());
-            let mut params: Vec<&str> = signal.args.iter().map(|arg| &arg.0 as &str).collect();
-            params.insert(0, "self".into());
-            let _ = writeln!(
-                result,
-                r#"
-    pub(crate) fn {2}({3}) {{
-        unsafe {{ Qffi_{0}_{1}({4}); }}
-    }}
-"#,
-                obj.name,
-                &signal.name,
-                to_snake_case(&signal.name),
-                args.join(", "),
-                params.join(", ")
-            );
-        }
-
-        result.push('\n');
-        if obj.qml {
-            let _ = writeln!(
-                result,
-                r#"
-    pub(crate) fn register_type(uri: &std::ffi::CStr, version_major: i32, version_minor: i32, qml_name: &std::ffi::CStr) -> i32 {{
-        unsafe {{ Qffi_{0}_registerType(uri.as_ptr(), version_major, version_minor, qml_name.as_ptr()) }}
-    }}
-"#,
-                obj.name,
-            );
-        }
-
-        result.push_str("}\n");
-    }
-
-    result
 }
 
 #[cfg(test)]

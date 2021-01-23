@@ -10,8 +10,10 @@ use crate::qobject::QObjectConfig;
 pub use crate::qobject::{QObjectMethod, QObjectProp, QObjectSignal};
 pub use crate::typeref::{Include, TypeRef, TypeRefTrait};
 
-pub mod ffi;
-pub mod generate;
+pub(crate) mod dependent;
+pub(crate) mod ffi;
+pub(crate) mod generate;
+pub(crate) mod generate_rust;
 pub mod moc;
 pub mod qobject;
 pub mod typeref;
