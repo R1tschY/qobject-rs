@@ -69,3 +69,9 @@ impl MocConfig {
         }
     }
 }
+
+impl Default for MocConfig {
+    fn default() -> Self {
+        Self::new()
+    }
+}

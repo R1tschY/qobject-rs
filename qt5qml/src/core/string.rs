@@ -58,6 +58,7 @@ impl QString {
         })
     }
 
+    #[allow(clippy::inherent_to_string_shadow_display)]
     pub fn to_string(&self) -> String {
         Self::decode(self.to_utf8())
     }
@@ -79,6 +80,10 @@ impl QString {
         cpp!(unsafe [self as "const QString*"] -> i32 as "int" {
             return self->size();
         }) as usize
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
     }
 
     pub(crate) fn decode(bytes: QByteArray) -> String {
@@ -157,7 +162,7 @@ impl<'a> ToQString for Cow<'a, str> {
 
 impl ToQString for Option<&str> {
     fn to_qstring(&self) -> QString {
-        QString::from_utf8_option(self.clone())
+        QString::from_utf8_option(*self)
     }
 }
 

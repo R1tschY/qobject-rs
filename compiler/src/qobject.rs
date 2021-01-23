@@ -113,7 +113,7 @@ impl QObjectMethod {
     }
 
     pub fn arg_with_type(mut self, name: &str, type_ref: TypeRef) -> Self {
-        self.args.push((name.into(), type_ref.clone()));
+        self.args.push((name.into(), type_ref));
         self
     }
 
@@ -123,7 +123,7 @@ impl QObjectMethod {
     }
 
     pub fn ret_type(mut self, type_ref: TypeRef) -> Self {
-        self.rtype = Some(type_ref.clone());
+        self.rtype = Some(type_ref);
         self
     }
 

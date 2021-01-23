@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 use std::ffi::CStr;
 use std::fmt::Write;
-use std::iter::FromIterator;
 
 use crate::dependent::Dependent;
 use crate::ffi::{FfiBridge, FfiFunction, ImplCode};
@@ -38,15 +37,12 @@ fn generate_include(include: &Include) -> String {
 
 fn generate_base_function_def(
     name: &str,
-    args: &Vec<(String, TypeRef)>,
+    args: &[(String, TypeRef)],
     rtype: &Option<TypeRef>,
 ) -> String {
     format!(
         "{} {}({})",
-        rtype
-            .as_ref()
-            .map(|rt| rt.cpp_type().clone())
-            .unwrap_or("void".into()),
+        rtype.as_ref().map(|rt| rt.cpp_type()).unwrap_or("void"),
         name,
         args.iter()
             .map(|(name, ty)| format!("{} {}", ty.cpp_type(), name))
@@ -60,17 +56,17 @@ fn generate_prop_def(writer: &mut String, prop: &QObjectProp) {
         .getter
         .as_ref()
         .map(|getter| format!(" READ {}", getter))
-        .unwrap_or(String::new());
+        .unwrap_or_default();
     let write = prop
         .setter
         .as_ref()
         .map(|setter| format!(" WRITE {}", setter))
-        .unwrap_or(String::new());
+        .unwrap_or_default();
     let notify = prop
         .signal
         .as_ref()
         .map(|signal| format!(" NOTIFY {}", signal))
-        .unwrap_or(String::new());
+        .unwrap_or_default();
     let const_ = if prop.const_ { " CONST" } else { "" };
 
     let _ = writeln!(
@@ -114,12 +110,12 @@ fn generate_ffi_impl(meth: &QObjectMethod) -> String {
         );
     }
 
-    params.insert(0, "_d".into());
+    params.insert(0, "_d");
     if let Some(rty) = &meth.rtype {
         if rty.return_safe() {
             format!("return {}({});", meth.get_ffi_name(), params.join(", "))
         } else {
-            params.push("&out__".into());
+            params.push("&out__");
             format!(
                 "{} out__;\n    {}({});\n    return out__;",
                 rty.cpp_type(),
@@ -151,7 +147,7 @@ fn generate_cpp(moc_name: &str, objects: &[&QObjectConfig], ffi: &FfiBridge) -> 
     for obj in objects {
         obj.dependencies(&mut includes);
     }
-    let mut includes = Vec::from_iter(includes.into_iter());
+    let mut includes: Vec<Include> = includes.into_iter().collect();
     includes.sort();
     for i in &includes {
         result.push_str(&generate_include(i));
@@ -298,7 +294,7 @@ impl GenerateCppCode for QObjectConfig {
         ));
         ffi.cpp_function(FfiFunction::new_complete(
             &format!("Qffi_{}_get_private", &self.name),
-            vec![("self_".into(), class_type.clone().with_mut_ptr())],
+            vec![("self_".into(), class_type.with_mut_ptr())],
             Some(TypeRef::void_mut_ptr()),
             ImplCode::Cpp("return self_->_d;".to_string()),
             None,
@@ -320,7 +316,7 @@ impl GenerateCppCode for QObjectConfig {
                 &format!("Qffi_{}_{}", self.name, signal.name),
                 args,
                 None,
-                ImplCode::Cpp(body.into()),
+                ImplCode::Cpp(body),
                 None,
             ));
         }

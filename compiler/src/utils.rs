@@ -44,17 +44,15 @@ impl CaseParser {
             }
             self.underscores += 1;
             CaseParserState::Sep
-        } else {
-            if c.is_ascii_uppercase() {
-                if old_state == CaseParserState::Lower {
-                    self.finish_part();
-                }
-                self.part.push(c.to_ascii_lowercase());
-                CaseParserState::Upper
-            } else {
-                self.part.push(c);
-                CaseParserState::Lower
+        } else if c.is_ascii_uppercase() {
+            if old_state == CaseParserState::Lower {
+                self.finish_part();
             }
+            self.part.push(c.to_ascii_lowercase());
+            CaseParserState::Upper
+        } else {
+            self.part.push(c);
+            CaseParserState::Lower
         };
     }
 

@@ -102,7 +102,7 @@ fn parse_attributes(method: &mut syn::ImplItemMethod) -> QObjectDeriveResult<Vec
     let qattrs: QObjectDeriveResult<Vec<QObjectItem>> = qattrs
         .into_iter()
         .map(|attr| {
-            let span = attr.span().clone();
+            let span = attr.span();
             let segments = &attr.path.segments;
             if segments[0].arguments != PathArguments::None {
                 return Err(illegal_input("path arguments on attribute", span));

@@ -48,7 +48,7 @@ impl {0} {{
     }}
 
     #[allow(unused)]
-    fn get_private<'a>(&'a mut self) -> &'a mut {0}Private {{
+    fn get_private(&mut self) -> &mut {0}Private {{
         unsafe {{ &mut *(Qffi_{0}_get_private(self) as *mut {0}Private) }}
     }}"#,
             obj.name
@@ -71,7 +71,7 @@ impl {0} {{
                 args.insert(0, "&mut self".into());
             }
             let mut params: Vec<&str> = meth.args.iter().map(|arg| &arg.0 as &str).collect();
-            params.insert(0, "self".into());
+            params.insert(0, "self");
 
             match &meth.rtype {
                 Some(ref rty) if !rty.return_safe() => {
@@ -121,7 +121,7 @@ impl {0} {{
                 .collect();
             args.insert(0, "&mut self".into());
             let mut params: Vec<&str> = signal.args.iter().map(|arg| &arg.0 as &str).collect();
-            params.insert(0, "self".into());
+            params.insert(0, "self");
             let _ = writeln!(
                 result,
                 r#"

@@ -94,4 +94,11 @@ impl QModelIndex {
     }*/
 }
 
+impl Default for QModelIndex {
+    #[inline]
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub const QT_USER_ROLE: i32 = 0x0100;

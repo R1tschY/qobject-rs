@@ -71,7 +71,7 @@ impl QObject {
         })
     }
 
-    fn move_to_thread(obj: &mut QObject, target_thread: *mut QThread) -> () {
+    fn move_to_thread(obj: &mut QObject, target_thread: *mut QThread) {
         cpp!(unsafe [obj as "QObject*", target_thread as  "QThread*"] {
             obj->moveToThread(target_thread);
         });
