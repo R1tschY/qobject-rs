@@ -57,6 +57,7 @@ pub fn build(
         .cpp(true)
         .file(path)
         .static_flag(true)
+        .warnings(false)
         .try_compile(output_name)?;
 
     Ok(())

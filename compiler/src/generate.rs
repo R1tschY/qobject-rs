@@ -1,7 +1,5 @@
-use std::borrow::Cow;
 use std::collections::HashSet;
 use std::ffi::CStr;
-use std::fmt;
 use std::fmt::Write;
 use std::iter::FromIterator;
 
@@ -75,7 +73,7 @@ fn generate_prop_def(writer: &mut String, prop: &QObjectProp) {
         .unwrap_or(String::new());
     let const_ = if prop.const_ { " CONST" } else { "" };
 
-    writeln!(
+    let _ = writeln!(
         writer,
         "  Q_PROPERTY({} {}{}{}{}{});",
         prop.type_ref.cpp_type(),
@@ -411,7 +409,7 @@ impl GenerateCppCode for QObjectConfig {
         // friends
         result.push('\n');
         for friend in friend_funcs {
-            writeln!(result, "{}", friend.generate_friend_cpp_impl());
+            result.push_str(&friend.generate_friend_cpp_impl());
             result.push('\n');
         }
 
