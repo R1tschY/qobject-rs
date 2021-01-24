@@ -1,6 +1,5 @@
 use crate::core::{QObject, Slot};
 use crate::QBox;
-use std::ptr;
 use std::time::Duration;
 
 cpp! {{
@@ -36,15 +35,18 @@ impl From<TimerType> for i32 {
 }
 
 impl QTimer {
-    pub fn new(parent: Option<&mut QObject>) -> QBox<QTimer> {
-        let parent: *mut QObject = parent.map_or(ptr::null_mut(), |p| p as *mut QObject);
+    pub fn new() -> QBox<QTimer> {
         unsafe {
-            QBox::from_raw(
-                cpp!(unsafe [parent as "QObject*"] -> *mut QTimer as "QTimer*" {
-                    return new QTimer(parent);
-                }),
-            )
+            QBox::from_raw(cpp!(unsafe [] -> *mut QTimer as "QTimer*" {
+                return new QTimer(nullptr);
+            }))
         }
+    }
+
+    pub fn new_with_parent(parent: &mut QObject) -> *mut QTimer {
+        cpp!(unsafe [parent as "QObject*"] -> *mut QTimer as "QTimer*" {
+            return new QTimer(parent);
+        })
     }
 
     pub fn is_active(&self) -> bool {

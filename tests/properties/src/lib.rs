@@ -44,7 +44,7 @@ mod tests {
 
     #[test]
     fn test_meta_object() {
-        let obj = TestObject::new(ptr::null_mut());
+        let obj = TestObject::new();
         assert!(obj.inherits(&CString::new("QObject").unwrap()));
         assert!(obj.inherits(&CString::new("TestObject").unwrap()));
         assert!(!obj.inherits(&CString::new("QAbstractListModel").unwrap()));
@@ -62,7 +62,7 @@ mod tests {
 
     #[test]
     fn read_prop() {
-        let obj = TestObject::new(ptr::null_mut());
+        let obj = TestObject::new();
         let props = get_props(obj.meta_object());
 
         let value = props.get("prop_r").unwrap().read(obj.as_qobject());
@@ -71,7 +71,7 @@ mod tests {
 
     #[test]
     fn written_value_can_be_read() {
-        let mut obj = TestObject::new(ptr::null_mut());
+        let mut obj = TestObject::new();
         let props = get_props(obj.meta_object());
 
         assert!(props
@@ -86,7 +86,7 @@ mod tests {
 
     #[test]
     fn read_only_prop_not_writeable() {
-        let mut obj = TestObject::new(ptr::null_mut());
+        let mut obj = TestObject::new();
         let props = get_props(obj.meta_object());
 
         assert!(!props
@@ -97,7 +97,7 @@ mod tests {
 
     #[test]
     fn write_with_wrong_type_not_accepted() {
-        let mut obj = TestObject::new(ptr::null_mut());
+        let mut obj = TestObject::new();
         let props = get_props(obj.meta_object());
         let value: QVariant = "Hello".into();
         dbg!(&value);

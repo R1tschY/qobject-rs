@@ -43,8 +43,14 @@ impl qt5qml::core::QObjectRef for {0} {{
 }}
 
 impl {0} {{
-    pub fn new(parent: *mut qt5qml::core::QObject) -> qt5qml::QBox<{0}> {{
-        unsafe {{ qt5qml::QBox::from_raw(Qffi_{0}_new(parent)) }}
+    #[allow(unused)]
+    pub fn new() -> qt5qml::QBox<{0}> {{
+        unsafe {{ qt5qml::QBox::from_raw(Qffi_{0}_new(std::ptr::null_mut())) }}
+    }}
+
+    #[allow(unused)]
+    pub fn new_with_parent(parent: &mut qt5qml::core::QObject) -> *mut {0} {{
+        unsafe {{ Qffi_{0}_new(parent) }}
     }}
 
     #[allow(unused)]

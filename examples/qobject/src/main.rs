@@ -1,5 +1,4 @@
 use std::ffi::CString;
-use std::ptr;
 
 use qt5qml::core::QObjectRef;
 
@@ -16,7 +15,7 @@ impl MyQObjectPrivate {
 }
 
 fn main() {
-    let obj = MyQObject::new(ptr::null_mut());
+    let obj = MyQObject::new();
     assert!(obj.inherits(&CString::new("QObject").unwrap()));
     assert!(obj.inherits(&CString::new("MyQObject").unwrap()));
     assert!(!obj.inherits(&CString::new("QAbstractListModel").unwrap()));

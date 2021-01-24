@@ -58,7 +58,7 @@ fn slot_calls(obj: &mut QObject) -> i32 {
 #[test]
 fn check_invoke_method() {
     unsafe {
-        let mut object = TestObject::new(ptr::null_mut());
+        let mut object = TestObject::new();
         let success =
             QMetaObject::build_invoke_method(object.as_qobject_mut(), cstr!("slot")).invoke();
         assert!(success);
@@ -69,7 +69,7 @@ fn check_invoke_method() {
 #[test]
 fn check_nonexisting_method() {
     unsafe {
-        let mut object = TestObject::new(ptr::null_mut());
+        let mut object = TestObject::new();
         let success =
             QMetaObject::build_invoke_method(object.as_qobject_mut(), cstr!("nonexisting"))
                 .invoke();
@@ -80,7 +80,7 @@ fn check_nonexisting_method() {
 #[test]
 fn check_nonargs_method() {
     unsafe {
-        let mut object = TestObject::new(ptr::null_mut());
+        let mut object = TestObject::new();
         let success = QMetaObject::build_invoke_method(object.as_qobject_mut(), cstr!("slot"))
             .arg::<QString>(&QString::new())
             .invoke();
@@ -92,7 +92,7 @@ fn check_nonargs_method() {
 #[test]
 fn check_invoke_method_rtype() {
     unsafe {
-        let mut object = TestObject::new(ptr::null_mut());
+        let mut object = TestObject::new();
         let mut ret: QString = QString::new();
         let success = QMetaObject::build_invoke_method(object.as_qobject_mut(), cstr!("echoSlot"))
             .arg::<QString>(&"<!>".to_qstring())

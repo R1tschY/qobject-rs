@@ -36,15 +36,18 @@ pub struct Signal(Cow<'static, CStr>);
 pub struct Slot(Cow<'static, CStr>);
 
 impl QObject {
-    pub fn new(parent: Option<&mut QObject>) -> QBox<QObject> {
-        let parent: *mut QObject = parent.map_or(ptr::null_mut(), |p| p as *mut QObject);
+    pub fn new() -> QBox<QObject> {
         unsafe {
-            QBox::from_raw(
-                cpp!(unsafe [parent as "QObject*"] -> *mut QObject as "QObject*" {
-                    return new QObject(parent);
-                }),
-            )
+            QBox::from_raw(cpp!(unsafe [] -> *mut QObject as "QObject*" {
+                return new QObject(nullptr);
+            }))
         }
+    }
+
+    pub fn new_with_parent(parent: &mut QObject) -> *mut QObject {
+        cpp!(unsafe [parent as "QObject*"] -> *mut QObject as "QObject*" {
+            return new QObject(parent);
+        })
     }
 
     pub unsafe fn inherits(obj: &QObject, class_name: *const c_char) -> bool {

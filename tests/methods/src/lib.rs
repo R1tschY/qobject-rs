@@ -53,7 +53,7 @@ mod tests {
 
     #[test]
     fn check_method_safe_return() {
-        let mut object = TestObject::new(ptr::null_mut());
+        let mut object = TestObject::new();
         let private = object.get_private();
 
         assert_eq!(42, private.method_safe_return());
@@ -61,7 +61,7 @@ mod tests {
 
     #[test]
     fn check_method_unsafe_return() {
-        let mut object = TestObject::new(ptr::null_mut());
+        let mut object = TestObject::new();
         let private = object.get_private();
 
         assert_eq!("Hello", private.method_unsafe_return().to_string());
@@ -69,7 +69,7 @@ mod tests {
 
     #[test]
     fn check_method_with_args() {
-        let mut object = TestObject::new(ptr::null_mut());
+        let mut object = TestObject::new();
         let private = object.get_private();
 
         assert_eq!(89, private.method_with_args(&QString::new(), 89));
@@ -77,7 +77,7 @@ mod tests {
 
     #[test]
     fn check_proxy_safe_return() {
-        let mut object = TestObject::new(ptr::null_mut());
+        let mut object = TestObject::new();
         let private = object.get_private();
 
         assert_eq!(ptr::null_mut(), private.sender());
@@ -85,7 +85,7 @@ mod tests {
 
     #[test]
     fn check_proxy_unsafe_return() {
-        let mut object = TestObject::new(ptr::null_mut());
+        let mut object = TestObject::new();
         let private = object.get_private();
 
         assert_eq!("", &private.object_name().to_string());
@@ -93,7 +93,7 @@ mod tests {
 
     #[test]
     fn check_proxy_void_return() {
-        let mut object = TestObject::new(ptr::null_mut());
+        let mut object = TestObject::new();
         let private = object.get_private();
 
         private.dump_object_info();

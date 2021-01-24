@@ -3,8 +3,8 @@ use std::time::Duration;
 
 #[test]
 fn object_connect() {
-    let object = QObject::new(None);
-    let mut timer = QTimer::new(None);
+    let object = QObject::new();
+    let mut timer = QTimer::new();
     timer.set_interval(Duration::from_secs(10));
 
     let connection = QObject::connect(
@@ -23,8 +23,8 @@ fn object_connect() {
 
 #[test]
 fn object_connect_signal_signal() {
-    let object1 = QObject::new(None);
-    let object2 = QObject::new(None);
+    let object1 = QObject::new();
+    let object2 = QObject::new();
 
     let connection = QObject::connect(
         &object1,
@@ -38,8 +38,8 @@ fn object_connect_signal_signal() {
 
 #[test]
 fn object_disconnect_connection() {
-    let object = QObject::new(None);
-    let mut timer = QTimer::new(None);
+    let object = QObject::new();
+    let mut timer = QTimer::new();
     timer.set_interval(Duration::from_secs(10));
 
     let connection = QObject::connect(
@@ -55,8 +55,8 @@ fn object_disconnect_connection() {
 
 #[test]
 fn object_disconnect_all() {
-    let object = QObject::new(None);
-    let mut timer = QTimer::new(None);
+    let object = QObject::new();
+    let mut timer = QTimer::new();
     timer.set_interval(Duration::from_secs(10));
 
     let connection = QObject::connect(
@@ -72,8 +72,8 @@ fn object_disconnect_all() {
 
 #[test]
 fn object_disconnect_method() {
-    let object = QObject::new(None);
-    let mut timer = QTimer::new(None);
+    let object = QObject::new();
+    let mut timer = QTimer::new();
     timer.set_interval(Duration::from_secs(10));
 
     let connection = QObject::connect(
@@ -89,8 +89,8 @@ fn object_disconnect_method() {
 
 #[test]
 fn object_disconnect() {
-    let object = QObject::new(None);
-    let mut timer = QTimer::new(None);
+    let object = QObject::new();
+    let mut timer = QTimer::new();
     timer.set_interval(Duration::from_secs(10));
 
     let connection = QObject::connect(
@@ -113,8 +113,8 @@ fn object_disconnect() {
 
 #[test]
 fn object_disconnect_nothing() {
-    let object = QObject::new(None);
-    let mut timer = QTimer::new(None);
+    let object = QObject::new();
+    let mut timer = QTimer::new();
     timer.set_interval(Duration::from_secs(10));
 
     let connection = QObject::connect(

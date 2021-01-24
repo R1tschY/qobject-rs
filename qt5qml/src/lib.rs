@@ -27,8 +27,8 @@ macro_rules! cstr {
 /// ```rust
 /// # use qt5qml::core::{QObject, ConnectionType};
 /// # use qt5qml::{signal, slot};
-/// # let object1 = QObject::new(None);
-/// # let object2 = QObject::new(None);
+/// # let object1 = QObject::new();
+/// # let object2 = QObject::new();
 ///
 /// QObject::connect(
 ///     &object1, signal!("triggered()"),
@@ -49,8 +49,8 @@ macro_rules! slot {
 /// ```rust
 /// # use qt5qml::core::{QObject, ConnectionType};
 /// # use qt5qml::{signal, slot};
-/// # let object1 = QObject::new(None);
-/// # let object2 = QObject::new(None);
+/// # let object1 = QObject::new();
+/// # let object2 = QObject::new();
 ///
 /// QObject::connect(
 ///     &object1, signal!("triggered()"),

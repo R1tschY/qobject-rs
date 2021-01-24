@@ -20,6 +20,6 @@ impl TestObjectPrivate {
 fn test_signal() {
     use std::ptr;
 
-    let mut object = TestObject::new(ptr::null_mut());
+    let mut object = TestObject::new();
     object.signal0();
 }
