@@ -133,6 +133,19 @@ impl From<&QString> for QVariant {
     }
 }
 
+impl<T> From<Option<T>> for QVariant
+where
+    QVariant: From<T>,
+{
+    #[inline]
+    fn from(value: Option<T>) -> Self {
+        match value {
+            Some(value) => value.into(),
+            None => QVariant::default(),
+        }
+    }
+}
+
 macro_rules! qvariant_try_from_value {
     ($ty:ty) => {
         impl TryFrom<QVariant> for $ty {
