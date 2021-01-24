@@ -8,6 +8,7 @@ cpp! {{
 opaque_struct!(QAbstractItemModel);
 
 #[repr(C)]
+#[derive(Eq, PartialEq, Ord, PartialOrd)]
 pub struct QModelIndex {
     r: i32,
     c: i32,
@@ -23,6 +24,10 @@ impl QModelIndex {
             i: ptr::null_mut(),
             m: ptr::null(),
         }
+    }
+
+    fn new_(r: i32, c: i32, i: *mut c_void, m: *const QAbstractItemModel) -> Self {
+        Self { r, c, i, m }
     }
 
     pub fn row(&self) -> i32 {
@@ -46,7 +51,7 @@ impl QModelIndex {
     }
 
     pub fn is_valid(&self) -> bool {
-        self.r >= 0 && self.c >= 0 && self.m.is_null()
+        self.r >= 0 && self.c >= 0 && !self.m.is_null()
     }
 
     /*    pub fn parent(&self) -> QModelIndex {
@@ -102,3 +107,34 @@ impl Default for QModelIndex {
 }
 
 pub const QT_USER_ROLE: i32 = 0x0100;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn is_invalid() {
+        assert!(!QModelIndex::new().is_valid())
+    }
+
+    #[test]
+    fn is_valid() {
+        assert!(QModelIndex::new_(0, 0, ptr::null_mut(), 1000 as *const _).is_valid())
+    }
+
+    #[test]
+    fn row() {
+        assert_eq!(
+            10,
+            QModelIndex::new_(10, 0, ptr::null_mut(), 1000 as *const _).row()
+        )
+    }
+
+    #[test]
+    fn column() {
+        assert_eq!(
+            10,
+            QModelIndex::new_(0, 10, ptr::null_mut(), 1000 as *const _).column()
+        )
+    }
+}
