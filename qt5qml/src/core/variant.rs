@@ -12,14 +12,17 @@ cpp_class!(
 );
 
 impl QVariant {
+    #[inline]
     pub fn new() -> Self {
         Self::default()
     }
 
+    #[inline]
     pub fn is_valid(&self) -> bool {
         cpp!(unsafe [self as "const QVariant*"] -> bool as "bool" { return self->isValid(); })
     }
 
+    #[inline]
     pub fn is_null(&self) -> bool {
         cpp!(unsafe [self as "const QVariant*"] -> bool as "bool" { return self->isNull(); })
     }
@@ -28,6 +31,7 @@ impl QVariant {
 macro_rules! qvariant_from_delegation {
     ($ty:ty, $delegate:ty) => {
         impl From<$ty> for QVariant {
+            #[inline]
             fn from(value: $ty) -> Self {
                 QVariant::from(value as $delegate)
             }
@@ -36,6 +40,7 @@ macro_rules! qvariant_from_delegation {
         impl TryFrom<&QVariant> for $ty {
             type Error = ();
 
+            #[inline]
             fn try_from(value: &QVariant) -> Result<Self, ()> {
                 <$delegate>::try_from(value).map(|r| r as Self)
             }
@@ -44,6 +49,7 @@ macro_rules! qvariant_from_delegation {
         impl TryFrom<QVariant> for $ty {
             type Error = ();
 
+            #[inline]
             fn try_from(value: QVariant) -> Result<Self, ()> {
                 <$delegate>::try_from(value).map(|r| r as Self)
             }
@@ -57,48 +63,56 @@ qvariant_from_delegation!(u8, u32);
 qvariant_from_delegation!(u16, u32);
 
 impl From<i32> for QVariant {
+    #[inline]
     fn from(value: i32) -> Self {
         cpp!(unsafe [value as "int"] -> QVariant as "QVariant" { return QVariant(value); })
     }
 }
 
 impl From<u32> for QVariant {
+    #[inline]
     fn from(value: u32) -> Self {
         cpp!(unsafe [value as "uint"] -> QVariant as "QVariant" { return QVariant(value); })
     }
 }
 
 impl From<i64> for QVariant {
+    #[inline]
     fn from(value: i64) -> Self {
         cpp!(unsafe [value as "qint64"] -> QVariant as "QVariant" { return QVariant(value); })
     }
 }
 
 impl From<u64> for QVariant {
+    #[inline]
     fn from(value: u64) -> Self {
         cpp!(unsafe [value as "quint64"] -> QVariant as "QVariant" { return QVariant(value); })
     }
 }
 
 impl From<bool> for QVariant {
+    #[inline]
     fn from(value: bool) -> Self {
         cpp!(unsafe [value as "bool"] -> QVariant as "QVariant" { return QVariant(value); })
     }
 }
 
 impl From<f32> for QVariant {
+    #[inline]
     fn from(value: f32) -> Self {
         cpp!(unsafe [value as "float"] -> QVariant as "QVariant" { return QVariant(value); })
     }
 }
 
 impl From<f64> for QVariant {
+    #[inline]
     fn from(value: f64) -> Self {
         cpp!(unsafe [value as "double"] -> QVariant as "QVariant" { return QVariant(value); })
     }
 }
 
 impl From<&QByteArray> for QVariant {
+    #[inline]
     fn from(value: &QByteArray) -> Self {
         cpp!(unsafe [value as "const QByteArray*"] -> QVariant as "QVariant" {
             return QVariant(value);
@@ -107,6 +121,7 @@ impl From<&QByteArray> for QVariant {
 }
 
 impl<'a> From<&'a str> for QVariant {
+    #[inline]
     fn from(value: &'a str) -> Self {
         // inlined to reduce FFI overhead
         let bytes = value.as_bytes();
@@ -119,13 +134,14 @@ impl<'a> From<&'a str> for QVariant {
 }
 
 impl From<String> for QVariant {
+    #[inline]
     fn from(value: String) -> Self {
-        let value: &str = &value;
-        value.into()
+        (&value as &str).into()
     }
 }
 
 impl From<&QString> for QVariant {
+    #[inline]
     fn from(value: &QString) -> Self {
         cpp!(unsafe [value as "const QString*"] -> QVariant as "QVariant" {
             return QVariant(value);
@@ -151,6 +167,7 @@ macro_rules! qvariant_try_from_value {
         impl TryFrom<QVariant> for $ty {
             type Error = ();
 
+            #[inline]
             fn try_from(value: QVariant) -> Result<Self, ()> {
                 <$ty>::try_from(&value)
             }
@@ -161,6 +178,7 @@ macro_rules! qvariant_try_from_value {
 macro_rules! qvariant_from_value {
     ($ty:ty) => {
         impl From<QVariant> for $ty {
+            #[inline]
             fn from(value: QVariant) -> Self {
                 <$ty>::from(&value)
             }
@@ -169,6 +187,7 @@ macro_rules! qvariant_from_value {
 }
 
 impl From<&QVariant> for bool {
+    #[inline]
     fn from(value: &QVariant) -> Self {
         cpp!(unsafe [value as "const QVariant*"] -> bool as "bool" {
             return value->toBool();
@@ -280,6 +299,7 @@ impl TryFrom<&QVariant> for f64 {
 qvariant_try_from_value!(f64);
 
 impl From<&QVariant> for QByteArray {
+    #[inline]
     fn from(value: &QVariant) -> Self {
         cpp!(unsafe [value as "const QVariant*"] -> QByteArray as "QByteArray" {
             return value->toByteArray();
@@ -289,6 +309,7 @@ impl From<&QVariant> for QByteArray {
 qvariant_from_value!(QByteArray);
 
 impl From<&QVariant> for QString {
+    #[inline]
     fn from(value: &QVariant) -> Self {
         cpp!(unsafe [value as "const QVariant*"] -> QString as "QString" {
             return value->toString();
