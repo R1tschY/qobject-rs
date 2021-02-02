@@ -1,21 +1,24 @@
 #[macro_use]
 extern crate syn;
 
-use crate::arguments::MetaArgs;
-use crate::diagnostic::DiagnosticExt;
-use proc_macro2::Ident;
-use qobject_compiler::qobject::QObjectConfig;
-use qobject_compiler::typeref::TypeRefTrait;
-use qobject_compiler::{Include, QObjectMethod, TypeRef};
-use quote::quote;
+use proc_macro::TokenStream;
 use std::collections::HashMap;
 use std::mem;
 use std::ops::Deref;
-use syn::export::{Span, TokenStream, TokenStream2};
+
+use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
+use quote::quote;
 use syn::spanned::Spanned;
 use syn::{
     parse_macro_input, Attribute, FnArg, ImplItem, PathArguments, PathSegment, ReturnType, Type,
 };
+
+use qobject_compiler::qobject::QObjectConfig;
+use qobject_compiler::typeref::TypeRefTrait;
+use qobject_compiler::{Include, QObjectMethod, TypeRef};
+
+use crate::arguments::MetaArgs;
+use crate::diagnostic::DiagnosticExt;
 
 mod arguments;
 mod diagnostic;
