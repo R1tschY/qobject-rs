@@ -19,10 +19,12 @@ env = Environment(
         {
             "name": "QObjectList",
             "cpp": "QObject*",
+            "rs": "*mut crate::core::QObject",
         },
         {
             "name": "QStringList",
             "cpp": "QString",
+            "rs": "crate::core::QString",
         }
     ]
 ))
