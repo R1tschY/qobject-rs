@@ -54,8 +54,8 @@ impl QMetaObject {
 
     pub fn build_invoke_method<'a>(
         obj: &'a mut QObject,
-        member: &'static CStr,
-    ) -> InvokeMethodBuilder<'a, 'static> {
+        member: &'a CStr,
+    ) -> InvokeMethodBuilder<'a> {
         InvokeMethodBuilder::new(obj, member)
     }
 }
@@ -314,17 +314,17 @@ impl Default for QGenericArgument {
     }
 }
 
-pub struct InvokeMethodBuilder<'a, 'b> {
+pub struct InvokeMethodBuilder<'a> {
     obj: &'a mut QObject,
-    member: &'b CStr,
+    member: &'a CStr,
     ret: Option<QGenericArgument>,
     type_: ConnectionType,
     arg_len: usize,
     args: [QGenericArgument; 10],
 }
 
-impl<'a, 'b> InvokeMethodBuilder<'a, 'b> {
-    pub fn new(obj: &'a mut QObject, member: &'b CStr) -> Self {
+impl<'a> InvokeMethodBuilder<'a> {
+    pub fn new(obj: &'a mut QObject, member: &'a CStr) -> Self {
         Self {
             obj,
             member,
