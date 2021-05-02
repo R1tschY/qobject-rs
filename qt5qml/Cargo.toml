@@ -11,4 +11,5 @@ cpp = "0.5"
 
 [build-dependencies]
 cpp_build = "0.5"
+cc = "1.0"
 pkg-config = "0.3"

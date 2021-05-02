@@ -1,0 +1,61 @@
+
+{% for name in classes.keys() -%}
+struct _{{ name }} {
+    void* __priv;
+};
+{% endfor %}
+
+#ifdef BINDGEN
+{% for name in classes.keys() -%}
+typedef _{{ name }} {{ name }};
+{% endfor %}
+#else
+{% for include in includes -%}
+    {{ '#include' }} <{{ include }}>
+{% endfor %}
+#endif
+
+extern "C" {
+
+{% for name, cls in classes.items() -%}
+
+{% if cls.default_ctor -%}
+    void qffi_{{ name }}_init({{ name }}* self);
+{% endif -%}
+
+{%- if cls.dtor -%}
+    void qffi_{{ name }}_destroy({{ name }}* self);
+{% endif -%}
+
+{%- if cls.copy_ctor -%}
+    void qffi_{{ name }}_clone({{ name }} const* self, {{ name }}* new_);
+{% endif -%}
+
+{%- if cls.copy_ctor -%}
+    void qffi_{{ name }}_clone({{ name }} const* self, {{ name }}* new_);
+{% endif -%}
+
+{%- if cls.eq -%}
+    bool qffi_{{ name }}_equals({{ name }} const* self, {{ name }} const* other);
+{% endif -%}
+
+{%- if cls.ord -%}
+    signed char qffi_{{ name }}_cmp({{ name }} const* self, {{ name }} const* other);
+{% endif -%}
+
+{%- for method_name, method in cls.methods.items() -%}
+    {{ method.return_ }} qffi_{{ name }}_{{ method_name }}(
+        {%- if not method.static -%}
+            {{ name }} {% if method.const %}const{% endif %}* self
+            {%- if method.params %}, {% endif -%}
+        {%- endif -%}
+        {%- for name, type in method.params.items() -%}
+            {{ type }} {{ name }}
+            {%- if not loop.last %}, {% endif -%}
+        {%- endfor -%}
+    );
+{% endfor %}
+
+{% endfor %}
+
+}

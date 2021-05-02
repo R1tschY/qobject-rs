@@ -16,4 +16,12 @@ fn main() {
     // Use with RUSTFLAGS=-Clinker-plugin-lto -Clinker=clang -Clink-arg=-fuse-ld=lld
     // cpp.flag_if_supported("-flto");
     cpp.build("src/lib.rs");
+
+    cc::Build::new()
+        .cpp(true)
+        .includes(qt5core.include_paths)
+        .includes(qt5gui.include_paths)
+        .includes(qt5qml.include_paths)
+        .file("src/ffi/qffi.cpp")
+        .compile("qffi");
 }

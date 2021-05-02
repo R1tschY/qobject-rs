@@ -1,0 +1,110 @@
+classes:
+  # QString
+  QString:
+    default-ctor: true
+    dtor: true
+    copy-ctor: true
+    copy-assign: true
+    trivially: false
+    movable: true
+    eq: true
+
+    methods:
+      size:
+        params: {}
+        return: int
+        const: true
+        body: return self->size();
+
+      isNull:
+        params: {}
+        return: bool
+        const: true
+        body: return self->isNull();
+
+      fromUtf8:
+        params:
+          data: const char*
+          size: int
+          dest: QString*
+        static: true
+        body: new (dest) QString(QString::fromUtf8(data, size));
+
+      fromUtf16:
+        params:
+          data: const unsigned short*
+          size: int
+          dest: QString*
+        static: true
+        body: new (dest) QString(QString::fromUtf16(data, size));
+
+      fromUtf16Unchecked:
+        params:
+          data: const unsigned short*
+          size: int
+          dest: QString*
+        static: true
+        body: new (dest) QString((const QChar*)(data), size);
+
+      toUtf8:
+        params:
+          dest: QByteArray*
+        const: true
+        body: new (dest) QByteArray(self->toUtf8());
+
+      utf16:
+        params:
+          len: int*
+        return: "const unsigned short*"
+        const: true
+        body: |
+          *len = self->size();
+          return (const unsigned short*)self->constData();
+
+      compare:
+        params:
+          other: const QString*
+        const: true
+        return: int
+        body: return self->compare(*other);
+
+  # QByteArray
+  QByteArray:
+    default-ctor: true
+    dtor: true
+    copy-ctor: true
+    copy-assign: true
+    trivially: false
+    movable: true
+    eq: true
+
+    methods:
+      fromData:
+        params:
+          data: const char*
+          len: int
+          dest: QByteArray*
+        static: true
+        body: new (dest) QByteArray(data, len);
+
+      data:
+        params:
+          len: int*
+        return: "const char*"
+        const: true
+        body: |
+          *len = self->size();
+          return self->constData();
+
+      compare:
+        params:
+          other: const QByteArray*
+        const: true
+        return: int
+        body: return self->compare(*other);
+
+includes:
+  - QString
+  - QByteArray
+
+

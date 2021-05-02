@@ -90,6 +90,8 @@ macro_rules! new_qobject_helper {
     };
 }
 
+pub(crate) mod ffi;
+
 pub mod core;
 pub mod gui;
 pub mod qml;

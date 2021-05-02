@@ -1,0 +1,80 @@
+use std::mem::MaybeUninit;
+use std::cmp::Ordering;
+
+use super::qffi::*;
+
+{% for name, cls in classes.items() -%}
+
+{% if cls.default_ctor -%}
+impl {{ name }} {
+    #[inline]
+    pub fn new() -> Self {
+        unsafe {
+            let mut ret = MaybeUninit::uninit();
+            qffi_{{ name }}_init(ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+}
+impl Default for {{ name }} {
+    #[inline]
+    fn default() -> Self {
+        {{ name }}::new()
+    }
+}
+{%- endif %}
+
+{% if cls.dtor -%}
+impl Drop for {{ name }} {
+    #[inline]
+    fn drop(&mut self) {
+        unsafe { qffi_{{ name }}_destroy(self) }
+    }
+}
+{%- endif %}
+
+{% if cls.copy_ctor -%}
+impl Clone for {{ name }} {
+    #[inline]
+    fn clone(&self) -> Self {
+        unsafe {
+            let mut ret = MaybeUninit::uninit();
+            qffi_{{ name }}_clone(self, ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+}
+{%- endif %}
+
+{% if cls.eq -%}
+impl PartialEq for {{ name }} {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        unsafe { qffi_{{ name }}_equals(self, other) }
+    }
+}
+impl Eq for {{ name }} { }
+{%- endif %}
+
+{% if cls.ord -%}
+impl PartialOrd for {{ name }} {
+    #[inline]
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(Ord::cmp(self, other))
+    }
+}
+
+impl Ord for {{ name }} {
+    #[inline]
+    fn cmp(&self, other: &Self) -> Ordering {
+        match unsafe { qffi_{{ name }}_cmp(self, other) } {
+            -1 => Ordering::Less,
+            0 => Ordering::Equal,
+            1 => Ordering::Greater,
+            _ => unreachable!(),
+        }
+    }
+}
+{%- endif %}
+
+{%- endfor %}

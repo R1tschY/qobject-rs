@@ -14,3 +14,15 @@ fn string_from() {
         String::from("ABC")
     );
 }
+
+#[test]
+fn string_from_empty() {
+    assert!(QString::from("").is_empty());
+    assert!(!QString::from("").is_null());
+}
+
+#[test]
+fn string_init() {
+    assert!(QString::new().is_empty());
+    assert!(QString::new().is_null());
+}

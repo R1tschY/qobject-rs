@@ -1,4 +1,4 @@
-use qt5qml::core::{QString, QStringList, ToQString};
+use qt5qml::core::{QStringList, ToQString};
 
 #[test]
 fn check_push() {

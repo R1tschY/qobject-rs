@@ -1,0 +1,65 @@
+
+#include "qffi.hpp"
+
+extern "C" {
+
+{% for name, cls in classes.items() -%}
+
+// {{ name }}
+
+static_assert(alignof({{ name }}) == alignof(_{{ name }}), "Alignment of {{ name }} incompatible");
+static_assert(sizeof({{ name }}) == sizeof(_{{ name }}), "Size of {{ name }} incompatible");
+
+{# CTOR #}
+{% if cls.default_ctor -%}
+void qffi_{{ name }}_init({{ name }}* self) {
+    new (self) {{ name }}();
+}
+{% endif %}
+
+{#- DTOR #}
+{% if cls.dtor -%}
+void qffi_{{ name }}_destroy({{ name }}* self) {
+    self->~{{ name }}();
+}
+{% endif %}
+
+{#- CLONE #}
+{% if cls.copy_ctor -%}
+void qffi_{{ name }}_clone({{ name }} const* self, {{ name }}* new_) {
+    new (new_) {{ name }}(*self);
+}
+{% endif -%}
+
+{#- EQUALS #}
+{% if cls.eq -%}
+bool qffi_{{ name }}_equals({{ name }} const* self, {{ name }} const* other) {
+    return *self == *other;
+}
+{% endif -%}
+
+{#- ORD #}
+{% if cls.ord -%}
+signed char qffi_{{ name }}_ord({{ name }} const* self, {{ name }} const* other) {
+    return int(*other < *self) - int(*self < *other);
+}
+{% endif -%}
+
+{#- Methods -#}
+{% for method_name, method in cls.methods.items() %}
+{{ method.return_ }} qffi_{{ name }}_{{ method_name }}(
+    {%- if not method.static -%}
+        {{ name }} {% if method.const %}const{% endif %}* self
+        {%- if method.params %}, {% endif -%}
+    {%- endif -%}
+    {%- for name, type in method.params.items() -%}
+        {{ type }} {{ name }}
+        {%- if not loop.last %}, {% endif -%}
+    {%- endfor -%}
+) {
+    {{ method.body | trim | indent }}
+}
+{% endfor %}
+
+{%- endfor %}
+}
