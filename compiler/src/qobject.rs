@@ -48,7 +48,7 @@ impl QObjectProp {
         self
     }
 
-    pub fn const_(&mut self) -> &mut Self {
+    pub fn const_(mut self) -> Self {
         self.const_ = true;
         self
     }
