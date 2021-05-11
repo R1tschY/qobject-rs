@@ -91,7 +91,7 @@ const char* qffi_QByteArray_data(QByteArray const* self, int* len) {
 }
 
 int qffi_QByteArray_compare(QByteArray const* self, const QByteArray* other) {
-    return self->compare(*other);
+    return int(*self < *other) - int(*self > *other);
 }
 
 }
