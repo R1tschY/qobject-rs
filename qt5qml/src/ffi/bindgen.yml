@@ -101,7 +101,8 @@ classes:
           other: const QByteArray*
         const: true
         return: int
-        body: return self->compare(*other);
+        # TODO: Qt 5.12: body: return self->compare(*other);
+        body: return int(*self < *other) - int(*self > *other);
 
 includes:
   - QString
