@@ -3,6 +3,7 @@ use std::cmp::Ordering;
 use std::ffi::{CStr, CString};
 use std::fmt::{self, Debug, Display};
 use std::mem::MaybeUninit;
+use std::os::raw::c_char;
 
 fn init_ffi_struct<T, F>(f: F) -> T
 where
@@ -36,7 +37,11 @@ impl QString {
     pub fn from_utf8(input: &str) -> Self {
         let bytes = input.as_bytes();
         Self(init_ffi_struct(|dest| unsafe {
-            crate::ffi::qffi_QString_fromUtf8(bytes.as_ptr() as *const i8, bytes.len() as i32, dest)
+            crate::ffi::qffi_QString_fromUtf8(
+                bytes.as_ptr() as *const c_char,
+                bytes.len() as i32,
+                dest,
+            )
         }))
     }
 
