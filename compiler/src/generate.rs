@@ -67,7 +67,7 @@ fn generate_prop_def(writer: &mut String, prop: &QObjectProp) {
         .as_ref()
         .map(|signal| format!(" NOTIFY {}", signal))
         .unwrap_or_default();
-    let const_ = if prop.const_ { " CONST" } else { "" };
+    let const_ = if prop.const_ { " CONSTANT" } else { "" };
 
     let _ = writeln!(
         writer,
