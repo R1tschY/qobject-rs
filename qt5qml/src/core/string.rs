@@ -217,7 +217,7 @@ impl QByteArray {
     pub fn from_bytes(bytes: &[u8]) -> Self {
         Self(init_ffi_struct(|dest| unsafe {
             crate::ffi::qffi_QByteArray_fromData(
-                bytes.as_ptr() as *const i8,
+                bytes.as_ptr() as *const c_char,
                 bytes.len() as i32,
                 dest,
             )
