@@ -3,9 +3,34 @@
 
 extern "C" {
 
-{% for name, cls in classes.items() -%}
+{% for name, cls in classes.items() %}
 
 // {{ name }}
+
+{%- if not cls.movable -%}
+
+{# QOBJECT CTOR #}
+{% if cls.qobject -%}
+{{ name }}* qffi_{{ name }}_init(QObject* parent) {
+    return new {{ name }}(parent);
+}
+{% endif %}
+
+{#- DTOR #}
+{% if cls.dtor -%}
+void qffi_{{ name }}_destroy({{ name }}* self) {
+    delete self;
+}
+{% endif %}
+
+{#- CLONE #}
+{% if cls.copy_ctor -%}
+{{ name }}* qffi_{{ name }}_clone({{ name }} const* self) {
+    return new {{ name }}(*self);
+}
+{% endif -%}
+
+{%- else -%}{#- not movable #}
 
 static_assert(alignof({{ name }}) == alignof(_{{ name }}), "Alignment of {{ name }} incompatible");
 static_assert(sizeof({{ name }}) == sizeof(_{{ name }}), "Size of {{ name }} incompatible");
@@ -30,6 +55,8 @@ void qffi_{{ name }}_clone({{ name }} const* self, {{ name }}* new_) {
     new (new_) {{ name }}(*self);
 }
 {% endif -%}
+
+{%- endif %}{#- not movable -#}
 
 {#- EQUALS #}
 {% if cls.eq -%}
@@ -60,6 +87,5 @@ signed char qffi_{{ name }}_ord({{ name }} const* self, {{ name }} const* other)
     {{ method.body | trim | indent }}
 }
 {% endfor %}
-
 {%- endfor %}
 }

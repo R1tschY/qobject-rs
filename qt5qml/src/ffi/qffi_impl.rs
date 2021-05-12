@@ -89,3 +89,16 @@ impl PartialEq for QByteArray {
 }
 impl Eq for QByteArray { }
 
+
+
+impl Drop for QTimer {
+    #[inline]
+    fn drop(&mut self) {
+        unsafe { qffi_QTimer_destroy(self) }
+    }
+}
+
+
+
+
+

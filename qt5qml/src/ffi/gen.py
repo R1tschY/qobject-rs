@@ -29,7 +29,8 @@ class Class(BaseModel):
     movable: bool = False
     eq: bool = False
     ord: bool = False
-    methods: Dict[str, Method]
+    methods: Dict[str, Method] = Field(default_factory=dict)
+    qobject: bool = False
 
 
 class BindgenConfig(BaseModel):

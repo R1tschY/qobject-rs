@@ -1,27 +1,28 @@
 
-struct _QString {
-    void* __priv;
+class _QString {
+    void* _1;
 };
-struct _QByteArray {
-    void* __priv;
+class _QByteArray {
+    void* _1;
 };
 
 
 #ifdef BINDGEN
+class QObject;
 typedef _QString QString;
 typedef _QByteArray QByteArray;
-
+class QTimer;
 #else
 #include <QString>
 #include <QByteArray>
-
+#include <QTimer>
 #endif
 
 extern "C" {
 
+
 void qffi_QString_init(QString* self);
 void qffi_QString_destroy(QString* self);
-void qffi_QString_clone(QString const* self, QString* new_);
 void qffi_QString_clone(QString const* self, QString* new_);
 bool qffi_QString_equals(QString const* self, QString const* other);
 int qffi_QString_size(QString const* self);
@@ -37,12 +38,25 @@ int qffi_QString_compare(QString const* self, const QString* other);
 void qffi_QByteArray_init(QByteArray* self);
 void qffi_QByteArray_destroy(QByteArray* self);
 void qffi_QByteArray_clone(QByteArray const* self, QByteArray* new_);
-void qffi_QByteArray_clone(QByteArray const* self, QByteArray* new_);
 bool qffi_QByteArray_equals(QByteArray const* self, QByteArray const* other);
 void qffi_QByteArray_fromData(const char* data, int len, QByteArray* dest);
 const char* qffi_QByteArray_data(QByteArray const* self, int* len);
 int qffi_QByteArray_compare(QByteArray const* self, const QByteArray* other);
 
+
+QTimer* qffi_QTimer_init(QObject* parent);
+void qffi_QTimer_destroy(QTimer* self);
+bool qffi_QTimer_isActive(QTimer const* self);
+int qffi_QTimer_interval(QTimer const* self);
+void qffi_QTimer_setInterval(QTimer * self, int value);
+int qffi_QTimer_remainingTime(QTimer const* self);
+bool qffi_QTimer_isSingleShot(QTimer const* self);
+void qffi_QTimer_setSingleShot(QTimer * self, bool value);
+int qffi_QTimer_timerType(QTimer const* self);
+void qffi_QTimer_setTimerType(QTimer * self, int value);
+void qffi_QTimer_start(QTimer * self);
+void qffi_QTimer_startWithInterval(QTimer * self, int interval);
+void qffi_QTimer_stop(QTimer * self);
 
 
 

@@ -2,14 +2,22 @@
 
 #[repr(C)]
 pub struct _QString {
-    pub __priv: *mut ::std::os::raw::c_void,
+    pub _1: *mut ::std::os::raw::c_void,
 }
 #[repr(C)]
 pub struct _QByteArray {
-    pub __priv: *mut ::std::os::raw::c_void,
+    pub _1: *mut ::std::os::raw::c_void,
+}
+#[repr(C)]
+pub struct QObject {
+    _unused: [u8; 0],
 }
 pub type QString = _QString;
 pub type QByteArray = _QByteArray;
+#[repr(C)]
+pub struct QTimer {
+    _unused: [u8; 0],
+}
 extern "C" {
     pub fn qffi_QString_init(self_: *mut QString);
 }
@@ -94,4 +102,43 @@ extern "C" {
         self_: *const QByteArray,
         other: *const QByteArray,
     ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn qffi_QTimer_init(parent: *mut QObject) -> *mut QTimer;
+}
+extern "C" {
+    pub fn qffi_QTimer_destroy(self_: *mut QTimer);
+}
+extern "C" {
+    pub fn qffi_QTimer_isActive(self_: *const QTimer) -> bool;
+}
+extern "C" {
+    pub fn qffi_QTimer_interval(self_: *const QTimer) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn qffi_QTimer_setInterval(self_: *mut QTimer, value: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn qffi_QTimer_remainingTime(self_: *const QTimer) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn qffi_QTimer_isSingleShot(self_: *const QTimer) -> bool;
+}
+extern "C" {
+    pub fn qffi_QTimer_setSingleShot(self_: *mut QTimer, value: bool);
+}
+extern "C" {
+    pub fn qffi_QTimer_timerType(self_: *const QTimer) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn qffi_QTimer_setTimerType(self_: *mut QTimer, value: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn qffi_QTimer_start(self_: *mut QTimer);
+}
+extern "C" {
+    pub fn qffi_QTimer_startWithInterval(self_: *mut QTimer, interval: ::std::os::raw::c_int);
+}
+extern "C" {
+    pub fn qffi_QTimer_stop(self_: *mut QTimer);
 }

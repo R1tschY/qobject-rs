@@ -1,24 +1,45 @@
 
-{% for name in classes.keys() -%}
-struct _{{ name }} {
-    void* __priv;
+{% for name, cls in classes.items() -%}
+{% if cls.movable -%}
+class _{{ name }} {
+    void* _1;
 };
+{% endif -%}
 {% endfor %}
 
 #ifdef BINDGEN
-{% for name in classes.keys() -%}
+class QObject;
+{% for name, cls in classes.items() -%}
+{% if not cls.movable -%}
+class {{ name }};
+{% else -%}
 typedef _{{ name }} {{ name }};
-{% endfor %}
+{% endif -%}
+{% endfor -%}
 #else
 {% for include in includes -%}
     {{ '#include' }} <{{ include }}>
-{% endfor %}
+{% endfor -%}
 #endif
 
 extern "C" {
 
 {% for name, cls in classes.items() -%}
 
+{% if not cls.movable %}
+{% if cls.qobject -%}
+{{ name }}* qffi_{{ name }}_init(QObject* parent);
+{% endif -%}
+
+{%- if cls.dtor -%}
+void qffi_{{ name }}_destroy({{ name }}* self);
+{% endif -%}
+
+{%- if cls.copy_ctor -%}
+{{ name }}* qffi_{{ name }}_clone({{ name }} const* self);
+{% endif -%}
+
+{% else %}{#- not movable #}
 {% if cls.default_ctor -%}
     void qffi_{{ name }}_init({{ name }}* self);
 {% endif -%}
@@ -31,9 +52,7 @@ extern "C" {
     void qffi_{{ name }}_clone({{ name }} const* self, {{ name }}* new_);
 {% endif -%}
 
-{%- if cls.copy_ctor -%}
-    void qffi_{{ name }}_clone({{ name }} const* self, {{ name }}* new_);
-{% endif -%}
+{% endif %}{#- not movable #}
 
 {%- if cls.eq -%}
     bool qffi_{{ name }}_equals({{ name }} const* self, {{ name }} const* other);
@@ -55,7 +74,6 @@ extern "C" {
         {%- endfor -%}
     );
 {% endfor %}
-
 {% endfor %}
 
 }

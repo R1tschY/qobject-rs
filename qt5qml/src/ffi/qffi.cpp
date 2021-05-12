@@ -3,6 +3,8 @@
 
 extern "C" {
 
+
+
 // QString
 
 static_assert(alignof(QString) == alignof(_QString), "Alignment of QString incompatible");
@@ -58,6 +60,8 @@ const unsigned short* qffi_QString_utf16(QString const* self, int* len) {
 int qffi_QString_compare(QString const* self, const QString* other) {
     return self->compare(*other);
 }
+
+
 // QByteArray
 
 static_assert(alignof(QByteArray) == alignof(_QByteArray), "Alignment of QByteArray incompatible");
@@ -92,6 +96,63 @@ const char* qffi_QByteArray_data(QByteArray const* self, int* len) {
 
 int qffi_QByteArray_compare(QByteArray const* self, const QByteArray* other) {
     return int(*self < *other) - int(*self > *other);
+}
+
+
+// QTimer
+QTimer* qffi_QTimer_init(QObject* parent) {
+    return new QTimer(parent);
+}
+
+void qffi_QTimer_destroy(QTimer* self) {
+    delete self;
+}
+
+
+
+
+bool qffi_QTimer_isActive(QTimer const* self) {
+    return self->isActive();
+}
+
+int qffi_QTimer_interval(QTimer const* self) {
+    return self->interval();
+}
+
+void qffi_QTimer_setInterval(QTimer * self, int value) {
+    self->setInterval(value);
+}
+
+int qffi_QTimer_remainingTime(QTimer const* self) {
+    return self->remainingTime();
+}
+
+bool qffi_QTimer_isSingleShot(QTimer const* self) {
+    return self->isSingleShot();
+}
+
+void qffi_QTimer_setSingleShot(QTimer * self, bool value) {
+    return self->setSingleShot(value);
+}
+
+int qffi_QTimer_timerType(QTimer const* self) {
+    return self->timerType();
+}
+
+void qffi_QTimer_setTimerType(QTimer * self, int value) {
+    self->setTimerType(static_cast<Qt::TimerType>(value));
+}
+
+void qffi_QTimer_start(QTimer * self) {
+    self->start();
+}
+
+void qffi_QTimer_startWithInterval(QTimer * self, int interval) {
+    self->start(interval);
+}
+
+void qffi_QTimer_stop(QTimer * self) {
+    self->stop();
 }
 
 }

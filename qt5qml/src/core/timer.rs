@@ -1,12 +1,10 @@
-use crate::core::{QObject, Slot};
-use crate::QBox;
+use std::ptr;
 use std::time::Duration;
 
-cpp! {{
-    #include <QTimer>
-}}
+use crate::core::{QObject, Signal, Slot};
+pub use crate::ffi::QTimer;
+use crate::QBox;
 
-opaque_struct!(QTimer);
 impl_qobject_ref!(QTimer);
 
 #[repr(C)]
@@ -17,6 +15,7 @@ pub enum TimerType {
 }
 
 impl From<i32> for TimerType {
+    #[inline]
     fn from(value: i32) -> Self {
         use TimerType::*;
         match value {
@@ -29,49 +28,40 @@ impl From<i32> for TimerType {
 }
 
 impl From<TimerType> for i32 {
+    #[inline]
     fn from(value: TimerType) -> Self {
         value as i32
     }
 }
 
 impl QTimer {
+    #[inline]
     pub fn new() -> QBox<QTimer> {
-        unsafe {
-            QBox::from_raw(cpp!(unsafe [] -> *mut QTimer as "QTimer*" {
-                return new QTimer(nullptr);
-            }))
-        }
+        unsafe { QBox::from_raw(crate::ffi::qffi_QTimer_init(ptr::null_mut())) }
     }
 
+    #[inline]
     pub fn new_with_parent(parent: &mut QObject) -> *mut QTimer {
-        cpp!(unsafe [parent as "QObject*"] -> *mut QTimer as "QTimer*" {
-            return new QTimer(parent);
-        })
+        unsafe { crate::ffi::qffi_QTimer_init(parent) }
     }
 
+    #[inline]
     pub fn is_active(&self) -> bool {
-        cpp!(unsafe [self as "const QTimer*"] -> bool as "bool" {
-            return self->isActive();
-        })
+        unsafe { crate::ffi::qffi_QTimer_isActive(self) }
     }
 
+    #[inline]
     pub fn interval(&self) -> Duration {
-        Duration::from_millis(cpp!(unsafe [self as "const QTimer*"] -> i32 as "int" {
-            return self->interval();
-        }) as u64)
+        Duration::from_millis(unsafe { crate::ffi::qffi_QTimer_interval(self) } as u64)
     }
 
+    #[inline]
     pub fn set_interval(&mut self, duration: Duration) {
-        let duration: i32 = duration.as_millis() as i32;
-        cpp!(unsafe [self as "QTimer*", duration as "int"] {
-            self->setInterval(duration);
-        });
+        unsafe { crate::ffi::qffi_QTimer_setInterval(self, duration.as_millis() as i32) }
     }
 
     pub fn remaining_time(&self) -> Option<Duration> {
-        let result = cpp!(unsafe [self as "const QTimer*"] -> i32 as "int" {
-            return self->remainingTime();
-        });
+        let result = unsafe { crate::ffi::qffi_QTimer_remainingTime(self) };
         if result < 0 {
             None
         } else {
@@ -79,38 +69,50 @@ impl QTimer {
         }
     }
 
+    #[inline]
     pub fn is_single_shot(&self) -> bool {
-        cpp!(unsafe [self as "const QTimer*"] -> bool as "bool" {
-            return self->isSingleShot();
-        })
+        unsafe { crate::ffi::qffi_QTimer_isSingleShot(self) }
     }
 
+    #[inline]
     pub fn set_single_shot(&mut self, single_shot: bool) {
-        cpp!(unsafe [self as "QTimer*", single_shot as "bool"] {
-            self->setSingleShot(single_shot);
-        });
+        unsafe { crate::ffi::qffi_QTimer_setSingleShot(self, single_shot) }
     }
 
+    #[inline]
     pub fn timer_type(&self) -> TimerType {
-        cpp!(unsafe [self as "const QTimer*"] -> i32 as "int" {
-            return self->timerType();
-        })
-        .into()
+        unsafe { crate::ffi::qffi_QTimer_timerType(self) }.into()
     }
 
+    #[inline]
     pub fn set_timer_type(&mut self, timer_type: TimerType) {
-        let timer_type: i32 = timer_type.into();
-        cpp!(unsafe [self as "QTimer*", timer_type as "int"] {
-            self->setTimerType(static_cast<Qt::TimerType>(timer_type));
-        });
+        unsafe { crate::ffi::qffi_QTimer_setTimerType(self, timer_type.into()) }
+    }
+
+    #[inline]
+    pub fn start(&mut self) {
+        unsafe { crate::ffi::qffi_QTimer_start(self) }
+    }
+
+    pub fn start_with_interval(&mut self, duration: Duration) {
+        unsafe { crate::ffi::qffi_QTimer_startWithInterval(self, duration.as_millis() as i32) }
+    }
+
+    #[inline]
+    pub fn stop(&mut self) {
+        unsafe { crate::ffi::qffi_QTimer_stop(self) }
     }
 
     pub fn start_slot() -> Slot {
         slot!("start()")
     }
 
+    pub fn stop_slot() -> Slot {
+        slot!("stop()")
+    }
+
     /// Note: Private signal
-    pub fn timeout_signal() -> Slot {
-        slot!("start()")
+    pub fn timeout_signal() -> Signal {
+        signal!("timeout()")
     }
 }

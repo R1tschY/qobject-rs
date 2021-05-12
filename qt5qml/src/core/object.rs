@@ -10,7 +10,7 @@ cpp! {{
     #include <QObject>
 }}
 
-opaque_struct!(QObject);
+pub use crate::ffi::QObject;
 impl_qobject_ref!(QObject);
 
 /// See enum Qt::ConnectionType

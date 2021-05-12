@@ -1,11 +1,9 @@
 classes:
-  # QString
+  # == QString ==
   QString:
     default-ctor: true
-    dtor: true
     copy-ctor: true
     copy-assign: true
-    trivially: false
     movable: true
     eq: true
 
@@ -68,13 +66,11 @@ classes:
         return: int
         body: return self->compare(*other);
 
-  # QByteArray
+  # == QByteArray ==
   QByteArray:
     default-ctor: true
-    dtor: true
     copy-ctor: true
     copy-assign: true
-    trivially: false
     movable: true
     eq: true
 
@@ -104,8 +100,60 @@ classes:
         # TODO: Qt 5.12: body: return self->compare(*other);
         body: return int(*self < *other) - int(*self > *other);
 
+  # == QTimer ==
+  QTimer:
+    qobject: true
+    methods:
+      isActive:
+        const: true
+        return: bool
+        body: return self->isActive();
+
+      interval:
+        const: true
+        return: int
+        body: return self->interval();
+      setInterval:
+        params:
+          value: int
+        body: self->setInterval(value);
+
+      remainingTime:
+        const: true
+        return: int
+        body: return self->remainingTime();
+
+      isSingleShot:
+        const: true
+        return: bool
+        body: return self->isSingleShot();
+      setSingleShot:
+        params:
+          value: bool
+        body: return self->setSingleShot(value);
+
+      timerType:
+        const: true
+        return: int
+        body: return self->timerType();
+      setTimerType:
+        params:
+          value: int
+        body: self->setTimerType(static_cast<Qt::TimerType>(value));
+
+      start:
+        body: self->start();
+      startWithInterval:
+        params:
+          interval: int
+        body: self->start(interval);
+      stop:
+        body: self->stop();
+
+
 includes:
   - QString
   - QByteArray
+  - QTimer
 
 
