@@ -2,23 +2,14 @@ use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::ffi::{CStr, CString};
 use std::fmt::{self, Debug, Display};
-use std::mem::MaybeUninit;
-use std::os::raw::c_char;
 
-fn init_ffi_struct<T, F>(f: F) -> T
-where
-    F: Fn(*mut T) -> (),
-{
-    unsafe {
-        let mut ret = MaybeUninit::uninit();
-        f(ret.as_mut_ptr());
-        ret.assume_init()
-    }
-}
+use crate::ffi;
+use crate::ffi::init_ffi_struct;
+use std::os::raw::c_char;
 
 #[repr(C)]
 #[derive(Clone, Default, Eq, PartialEq)]
-pub struct QString(crate::ffi::QString);
+pub struct QString(pub(crate) crate::ffi::QString);
 
 impl QString {
     #[inline]
@@ -37,30 +28,26 @@ impl QString {
     pub fn from_utf8(input: &str) -> Self {
         let bytes = input.as_bytes();
         Self(init_ffi_struct(|dest| unsafe {
-            crate::ffi::qffi_QString_fromUtf8(
-                bytes.as_ptr() as *const c_char,
-                bytes.len() as i32,
-                dest,
-            )
+            ffi::qffi_QString_fromUtf8(bytes.as_ptr() as *const c_char, bytes.len() as i32, dest)
         }))
     }
 
     pub fn from_utf16(bytes: &[u16]) -> Self {
         Self(init_ffi_struct(|dest| unsafe {
-            crate::ffi::qffi_QString_fromUtf16(bytes.as_ptr(), bytes.len() as i32, dest)
+            ffi::qffi_QString_fromUtf16(bytes.as_ptr(), bytes.len() as i32, dest)
         }))
     }
 
     pub unsafe fn from_utf16_unchecked(bytes: &[u16]) -> Self {
-        Self(init_ffi_struct(|dest| unsafe {
-            crate::ffi::qffi_QString_fromUtf16Unchecked(bytes.as_ptr(), bytes.len() as i32, dest)
+        Self(init_ffi_struct(|dest| {
+            ffi::qffi_QString_fromUtf16Unchecked(bytes.as_ptr(), bytes.len() as i32, dest)
         }))
     }
 
     #[inline]
     pub fn to_utf8(&self) -> QByteArray {
         QByteArray(init_ffi_struct(|dest| unsafe {
-            crate::ffi::qffi_QString_toUtf8(&self.0, dest)
+            ffi::qffi_QString_toUtf8(&self.0, dest)
         }))
     }
 
@@ -72,14 +59,14 @@ impl QString {
     pub fn utf16(&self) -> &[u16] {
         unsafe {
             let mut len: i32 = 0;
-            let data = crate::ffi::qffi_QString_utf16(&self.0, &mut len);
+            let data = ffi::qffi_QString_utf16(&self.0, &mut len);
             std::slice::from_raw_parts(data, len as usize)
         }
     }
 
     #[inline]
     pub fn len(&self) -> usize {
-        unsafe { crate::ffi::qffi_QString_size(&self.0) as usize }
+        unsafe { ffi::qffi_QString_size(&self.0) as usize }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -87,7 +74,7 @@ impl QString {
     }
 
     pub fn is_null(&self) -> bool {
-        unsafe { crate::ffi::qffi_QString_isNull(&self.0) }
+        unsafe { ffi::qffi_QString_isNull(&self.0) }
     }
 
     pub(crate) fn decode(bytes: QByteArray) -> String {
@@ -103,7 +90,7 @@ impl PartialOrd for QString {
 
 impl Ord for QString {
     fn cmp(&self, other: &Self) -> Ordering {
-        match unsafe { crate::ffi::qffi_QString_compare(&self.0, &other.0) } {
+        match unsafe { ffi::qffi_QString_compare(&self.0, &other.0) } {
             x if x < 0 => Ordering::Less,
             x if x == 0 => Ordering::Equal,
             _ => Ordering::Greater,
@@ -203,24 +190,20 @@ impl<'a> ToQString for Option<Cow<'a, str>> {
 
 #[repr(C)]
 #[derive(Clone, Default, Eq, PartialEq)]
-pub struct QByteArray(crate::ffi::QByteArray);
+pub struct QByteArray(pub(crate) crate::ffi::QByteArray);
 
 impl QByteArray {
     pub fn as_slice(&self) -> &[u8] {
         unsafe {
             let mut len: i32 = 0;
-            let data = crate::ffi::qffi_QByteArray_data(&self.0, &mut len) as *const u8;
+            let data = ffi::qffi_QByteArray_data(&self.0, &mut len) as *const u8;
             std::slice::from_raw_parts(data, len as usize)
         }
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Self {
         Self(init_ffi_struct(|dest| unsafe {
-            crate::ffi::qffi_QByteArray_fromData(
-                bytes.as_ptr() as *const c_char,
-                bytes.len() as i32,
-                dest,
-            )
+            ffi::qffi_QByteArray_fromData(bytes.as_ptr() as *const c_char, bytes.len() as i32, dest)
         }))
     }
 }
@@ -233,7 +216,7 @@ impl PartialOrd for QByteArray {
 
 impl Ord for QByteArray {
     fn cmp(&self, other: &Self) -> Ordering {
-        match unsafe { crate::ffi::qffi_QByteArray_compare(&self.0, &other.0) } {
+        match unsafe { ffi::qffi_QByteArray_compare(&self.0, &other.0) } {
             x if x < 0 => Ordering::Less,
             x if x == 0 => Ordering::Equal,
             _ => Ordering::Greater,

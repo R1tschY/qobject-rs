@@ -100,6 +100,38 @@ classes:
         # TODO: Qt 5.12: body: return self->compare(*other);
         body: return int(*self < *other) - int(*self > *other);
 
+  # == QUrl ==
+  QUrl:
+    default-ctor: true
+    copy-ctor: true
+    copy-assign: true
+    movable: true
+    eq: true
+    ord: true
+
+    methods:
+      fromString:
+        static: true
+        params:
+          value: const QString*
+          out: QUrl*
+        body: new (out) QUrl(*value);
+
+      fromLocalFile:
+        static: true
+        params:
+          value: const QString*
+          out: QUrl*
+        body: new (out) QUrl(QUrl::fromLocalFile(*value));
+
+      debug:
+        const: true
+        params:
+          out: QString*
+        body: |
+          new (out) QString();
+          QDebug(out).nospace() << *self;
+
   # == QTimer ==
   QTimer:
     qobject: true
@@ -155,5 +187,6 @@ includes:
   - QString
   - QByteArray
   - QTimer
-
+  - QUrl
+  - QDebug
 

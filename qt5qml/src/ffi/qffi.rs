@@ -9,11 +9,16 @@ pub struct _QByteArray {
     pub _1: *mut ::std::os::raw::c_void,
 }
 #[repr(C)]
+pub struct _QUrl {
+    pub _1: *mut ::std::os::raw::c_void,
+}
+#[repr(C)]
 pub struct QObject {
     _unused: [u8; 0],
 }
 pub type QString = _QString;
 pub type QByteArray = _QByteArray;
+pub type QUrl = _QUrl;
 #[repr(C)]
 pub struct QTimer {
     _unused: [u8; 0],
@@ -102,6 +107,30 @@ extern "C" {
         self_: *const QByteArray,
         other: *const QByteArray,
     ) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn qffi_QUrl_init(self_: *mut QUrl);
+}
+extern "C" {
+    pub fn qffi_QUrl_destroy(self_: *mut QUrl);
+}
+extern "C" {
+    pub fn qffi_QUrl_clone(self_: *const QUrl, new_: *mut QUrl);
+}
+extern "C" {
+    pub fn qffi_QUrl_equals(self_: *const QUrl, other: *const QUrl) -> bool;
+}
+extern "C" {
+    pub fn qffi_QUrl_cmp(self_: *const QUrl, other: *const QUrl) -> ::std::os::raw::c_schar;
+}
+extern "C" {
+    pub fn qffi_QUrl_fromString(value: *const QString, out: *mut QUrl);
+}
+extern "C" {
+    pub fn qffi_QUrl_fromLocalFile(value: *const QString, out: *mut QUrl);
+}
+extern "C" {
+    pub fn qffi_QUrl_debug(self_: *const QUrl, out: *mut QString);
 }
 extern "C" {
     pub fn qffi_QTimer_init(parent: *mut QObject) -> *mut QTimer;

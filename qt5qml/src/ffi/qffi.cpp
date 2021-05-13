@@ -99,6 +99,46 @@ int qffi_QByteArray_compare(QByteArray const* self, const QByteArray* other) {
 }
 
 
+// QUrl
+
+static_assert(alignof(QUrl) == alignof(_QUrl), "Alignment of QUrl incompatible");
+static_assert(sizeof(QUrl) == sizeof(_QUrl), "Size of QUrl incompatible");
+
+
+void qffi_QUrl_init(QUrl* self) {
+    new (self) QUrl();
+}
+
+void qffi_QUrl_destroy(QUrl* self) {
+    self->~QUrl();
+}
+
+void qffi_QUrl_clone(QUrl const* self, QUrl* new_) {
+    new (new_) QUrl(*self);
+}
+
+bool qffi_QUrl_equals(QUrl const* self, QUrl const* other) {
+    return *self == *other;
+}
+
+signed char qffi_QUrl_ord(QUrl const* self, QUrl const* other) {
+    return int(*other < *self) - int(*self < *other);
+}
+
+void qffi_QUrl_fromString(const QString* value, QUrl* out) {
+    new (out) QUrl(*value);
+}
+
+void qffi_QUrl_fromLocalFile(const QString* value, QUrl* out) {
+    new (out) QUrl(QUrl::fromLocalFile(*value));
+}
+
+void qffi_QUrl_debug(QUrl const* self, QString* out) {
+    new (out) QString();
+    QDebug(out).nospace() << *self;
+}
+
+
 // QTimer
 QTimer* qffi_QTimer_init(QObject* parent) {
     return new QTimer(parent);

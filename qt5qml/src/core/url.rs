@@ -1,29 +1,17 @@
-use crate::core::QString;
 use std::fmt;
-cpp! {{
-    #include <QUrl>
-}}
 
-cpp_class!(
-    #[derive(Clone, PartialEq, PartialOrd, Eq, Ord)]
-    pub unsafe struct QUrl as "QUrl"
-);
+use crate::core::QString;
+use crate::ffi;
+use crate::ffi::init_ffi_struct;
+pub use crate::ffi::QUrl;
 
 impl QUrl {
-    pub fn new() -> Self {
-        Self::default()
-    }
-
     pub fn from_qstring(value: &QString) -> Self {
-        cpp!(unsafe [value as "const QString*"] -> QUrl as "QUrl" {
-            return QUrl(*value);
-        })
+        init_ffi_struct(|dest| unsafe { ffi::qffi_QUrl_fromString(&value.0, dest) })
     }
 
-    pub fn from_local_file_intern(local_file: &QString) -> Self {
-        cpp!(unsafe [local_file as "const QString*"] -> QUrl as "QUrl" {
-            return QUrl::fromLocalFile(*local_file);
-        })
+    fn from_local_file_intern(local_file: &QString) -> Self {
+        init_ffi_struct(|dest| unsafe { ffi::qffi_QUrl_fromLocalFile(&local_file.0, dest) })
     }
 
     pub fn from_local_file<T: Into<QString>>(local_file: T) -> Self {
@@ -53,11 +41,9 @@ impl From<String> for QUrl {
 
 impl fmt::Debug for QUrl {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let str: String = cpp!(unsafe [self as "const QUrl*"] -> QString as "QString" {
-            QString buffer;
-            QDebug(&buffer).nospace() << *self;
-            return buffer;
-        })
+        let str: String = QString(init_ffi_struct(|dest| unsafe {
+            ffi::qffi_QUrl_debug(self, dest)
+        }))
         .into();
         f.write_str(&str)
     }

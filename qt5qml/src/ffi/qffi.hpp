@@ -5,17 +5,23 @@ class _QString {
 class _QByteArray {
     void* _1;
 };
+class _QUrl {
+    void* _1;
+};
 
 
 #ifdef BINDGEN
 class QObject;
 typedef _QString QString;
 typedef _QByteArray QByteArray;
+typedef _QUrl QUrl;
 class QTimer;
 #else
 #include <QString>
 #include <QByteArray>
 #include <QTimer>
+#include <QUrl>
+#include <QDebug>
 #endif
 
 extern "C" {
@@ -42,6 +48,16 @@ bool qffi_QByteArray_equals(QByteArray const* self, QByteArray const* other);
 void qffi_QByteArray_fromData(const char* data, int len, QByteArray* dest);
 const char* qffi_QByteArray_data(QByteArray const* self, int* len);
 int qffi_QByteArray_compare(QByteArray const* self, const QByteArray* other);
+
+
+void qffi_QUrl_init(QUrl* self);
+void qffi_QUrl_destroy(QUrl* self);
+void qffi_QUrl_clone(QUrl const* self, QUrl* new_);
+bool qffi_QUrl_equals(QUrl const* self, QUrl const* other);
+signed char qffi_QUrl_cmp(QUrl const* self, QUrl const* other);
+void qffi_QUrl_fromString(const QString* value, QUrl* out);
+void qffi_QUrl_fromLocalFile(const QString* value, QUrl* out);
+void qffi_QUrl_debug(QUrl const* self, QString* out);
 
 
 QTimer* qffi_QTimer_init(QObject* parent);
