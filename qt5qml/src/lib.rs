@@ -112,6 +112,9 @@ impl<T: Deletable> CppBox<T> {
     }
 }
 
+unsafe impl<T> Send for CppBox<T> where T: Send {}
+unsafe impl<T> Sync for CppBox<T> where T: Sync {}
+
 impl<T: Deletable> Deref for CppBox<T> {
     type Target = T;
 
@@ -142,6 +145,9 @@ impl<T: QObjectRef> QBox<T> {
         Self(ptr::NonNull::new(ptr).expect("tried to create a QBox from a null pointer"))
     }
 }
+
+unsafe impl<T> Send for QBox<T> where T: Send {}
+unsafe impl<T> Sync for QBox<T> where T: Sync {}
 
 impl<T: QObjectRef> Deref for QBox<T> {
     type Target = T;
