@@ -112,8 +112,8 @@ impl<T: Deletable> CppBox<T> {
     }
 }
 
-unsafe impl<T> Send for CppBox<T> where T: Send {}
-unsafe impl<T> Sync for CppBox<T> where T: Sync {}
+unsafe impl<T: Deletable> Send for CppBox<T> where T: Send {}
+unsafe impl<T: Deletable> Sync for CppBox<T> where T: Sync {}
 
 impl<T: Deletable> Deref for CppBox<T> {
     type Target = T;
@@ -146,8 +146,8 @@ impl<T: QObjectRef> QBox<T> {
     }
 }
 
-unsafe impl<T> Send for QBox<T> where T: Send {}
-unsafe impl<T> Sync for QBox<T> where T: Sync {}
+unsafe impl<T: QObjectRef> Send for QBox<T> where T: Send {}
+unsafe impl<T: QObjectRef> Sync for QBox<T> where T: Sync {}
 
 impl<T: QObjectRef> Deref for QBox<T> {
     type Target = T;
