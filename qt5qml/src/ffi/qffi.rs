@@ -36,6 +36,10 @@ pub struct QGuiApplication {
     _unused: [u8; 0],
 }
 pub type QHashIntQByteArray = _QHashIntQByteArray;
+#[repr(C)]
+pub struct QThread {
+    _unused: [u8; 0],
+}
 extern "C" {
     pub fn qffi_QString_init(self_: *mut QString);
 }

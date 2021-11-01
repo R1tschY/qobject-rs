@@ -222,3 +222,10 @@ impl PartialEq for QHashIntQByteArray {
     }
 }
 impl Eq for QHashIntQByteArray { }
+
+impl Drop for QThread {
+    #[inline]
+    fn drop(&mut self) {
+        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::core::QObject) }
+    }
+}

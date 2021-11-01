@@ -240,6 +240,10 @@ classes:
           value: const QByteArray*
         body: self->insert(*key, *value);
 
+  # == QThread ==
+  QThread:
+    qobject: true
+
 
 
 includes:

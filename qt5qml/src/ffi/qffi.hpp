@@ -22,6 +22,7 @@ class _QHashIntQByteArray {
     class QCoreApplication;
     class QGuiApplication;
     typedef _QHashIntQByteArray QHashIntQByteArray;
+    class QThread;
 #else
     #include <QString>
     #include <QByteArray>
@@ -31,6 +32,7 @@ class _QHashIntQByteArray {
     #include <QCoreApplication>
     #include <QGuiApplication>
     #include <QHash>
+    #include <QThread>
     class QHashIntQByteArray;
     #include <QDebug>
 #endif
@@ -102,6 +104,8 @@ void qffi_QHashIntQByteArray_clone(QHashIntQByteArray const* self, QHashIntQByte
 bool qffi_QHashIntQByteArray_equals(QHashIntQByteArray const* self, QHashIntQByteArray const* other);
 int qffi_QHashIntQByteArray_size(QHashIntQByteArray const* self);
 void qffi_QHashIntQByteArray_insert(QHashIntQByteArray * self, const int* key, const QByteArray* value);
+
+
 
 
 

@@ -1,6 +1,3 @@
-cpp! {{
-    #include <QThread>
-}}
+pub struct QThread(pub(crate) crate::ffi::QTimer);
 
-opaque_struct!(QThread);
 impl_qobject_ref!(QThread);

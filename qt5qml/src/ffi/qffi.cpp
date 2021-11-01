@@ -297,4 +297,11 @@ void qffi_QHashIntQByteArray_insert(QHashIntQByteArray * _self, const int* key, 
     self->insert(*key, *value);
 }
 
+
+// QThread
+
+
+
+
+
 }
