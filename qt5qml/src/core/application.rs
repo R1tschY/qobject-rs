@@ -4,48 +4,39 @@ use std::os::raw::{c_char, c_int};
 use std::pin::Pin;
 
 use crate::core::QObjectRef;
+use crate::ffi::{qffi_QCoreApplication_exec, qffi_QCoreApplication_init};
 use crate::QBox;
 
-cpp! {{
-    #include <QCoreApplication>
-}}
-
-opaque_struct!(QCoreApplication);
+pub struct QCoreApplication(pub(crate) crate::ffi::QCoreApplication);
 impl_qobject_ref!(QCoreApplication);
 
 impl QCoreApplication {
     pub fn exec(&self) -> i32 {
-        cpp!(unsafe [] -> i32 as "int" {
-            return QCoreApplication::exec();
-        })
+        unsafe { qffi_QCoreApplication_exec() }
     }
-}
-
-fn pin_vec<T>(input: Vec<T>) -> Pin<Vec<T>> {
-    unsafe { Pin::new_unchecked(input) }
 }
 
 pub trait QApplicationFactory {
     type ApplicationType: QObjectRef;
 
-    unsafe fn create_app(
-        argc: *mut c_int,
-        argv: *const *const c_char,
-    ) -> *mut Self::ApplicationType;
+    unsafe fn create_app(argc: *mut c_int, argv: *mut *const c_char) -> *mut Self::ApplicationType;
 
     fn new_from_env_args() -> QApplicationHolder<Self::ApplicationType>
     where
         Self: std::marker::Sized,
     {
-        let args: Vec<CString> = std::env::args()
+        let mut argv_owned: Pin<Box<[CString]>> = std::env::args()
             .map(|arg| CString::new(arg).unwrap())
-            .collect();
+            .collect::<Box<[CString]>>()
+            .into();
+        let mut argv: Pin<Box<[*const c_char]>> = argv_owned
+            .iter_mut()
+            .map(|arg| arg.as_ptr())
+            .collect::<Box<[*const c_char]>>()
+            .into();
 
-        let argv_owned: Pin<Vec<CString>> = pin_vec(args);
-        let argv: Pin<Vec<*const c_char>> =
-            pin_vec(argv_owned.iter().map(|arg| arg.as_ptr()).collect());
         let mut argc: Pin<Box<c_int>> = Box::pin(argv_owned.len() as c_int);
-        let argv_ptr = argv.as_ptr();
+        let mut argv_ptr = argv.as_mut_ptr();
         let argc_ptr: *mut c_int = &mut *argc;
         let app = unsafe { QBox::from_raw(Self::create_app(argc_ptr, argv_ptr)) };
 
@@ -61,16 +52,14 @@ pub trait QApplicationFactory {
 impl QApplicationFactory for QCoreApplication {
     type ApplicationType = Self;
 
-    unsafe fn create_app(argc: *mut i32, argv: *const *const c_char) -> *mut QCoreApplication {
-        cpp!([argc as "int*", argv as "char**"] -> *mut QCoreApplication as "QCoreApplication*" {
-            return new QCoreApplication(*argc, argv);
-        })
+    unsafe fn create_app(argc: *mut i32, argv: *mut *const c_char) -> *mut QCoreApplication {
+        unsafe { std::mem::transmute(qffi_QCoreApplication_init(argc, argv)) }
     }
 }
 
 pub struct QApplicationHolder<T: QObjectRef> {
-    _argv_owned: Pin<Vec<CString>>,
-    _argv: Pin<Vec<*const c_char>>,
+    _argv_owned: Pin<Box<[CString]>>,
+    _argv: Pin<Box<[*const c_char]>>,
     _argc: Pin<Box<c_int>>,
     app: QBox<T>,
 }

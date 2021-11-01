@@ -15,12 +15,18 @@ class QObject;
 typedef _QString QString;
 typedef _QByteArray QByteArray;
 typedef _QUrl QUrl;
+class QObject;
 class QTimer;
+class QCoreApplication;
+class QGuiApplication;
 #else
 #include <QString>
 #include <QByteArray>
-#include <QTimer>
 #include <QUrl>
+#include <QObject>
+#include <QTimer>
+#include <QCoreApplication>
+#include <QGuiApplication>
 #include <QDebug>
 #endif
 
@@ -60,8 +66,10 @@ void qffi_QUrl_fromLocalFile(const QString* value, QUrl* out);
 void qffi_QUrl_debug(QUrl const* self, QString* out);
 
 
+void qffi_QObject_destroy(QObject* self);
+
+
 QTimer* qffi_QTimer_init(QObject* parent);
-void qffi_QTimer_destroy(QTimer* self);
 bool qffi_QTimer_isActive(QTimer const* self);
 int qffi_QTimer_interval(QTimer const* self);
 void qffi_QTimer_setInterval(QTimer * self, int value);
@@ -73,6 +81,14 @@ void qffi_QTimer_setTimerType(QTimer * self, int value);
 void qffi_QTimer_start(QTimer * self);
 void qffi_QTimer_startWithInterval(QTimer * self, int interval);
 void qffi_QTimer_stop(QTimer * self);
+
+
+int qffi_QCoreApplication_exec();
+QCoreApplication* qffi_QCoreApplication_init(int* argc, char const** argv);
+
+
+int qffi_QGuiApplication_exec();
+QGuiApplication* qffi_QGuiApplication_init(int* argc, char const** argv);
 
 
 

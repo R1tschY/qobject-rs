@@ -132,8 +132,13 @@ classes:
           new (out) QString();
           QDebug(out).nospace() << *self;
 
+  # == QObject ==
+  QObject:
+    dtor: true
+
   # == QTimer ==
   QTimer:
+    qobject-default-ctor: true
     qobject: true
     methods:
       isActive:
@@ -182,11 +187,39 @@ classes:
       stop:
         body: self->stop();
 
+  # == QCoreApplication ==
+  QCoreApplication:
+    qobject: true
+    methods:
+      exec:
+        static: true
+        return: int
+        body: return QCoreApplication::exec();
+      init:
+        static: true
+        params:
+          argc: int*
+          argv: char const**
+        return: QCoreApplication*
+        body: return new QCoreApplication(*argc, (char**)argv);
+
+  # == QGuiApplication ==
+  QGuiApplication:
+    qobject: true
+    methods:
+      exec:
+        static: true
+        return: int
+        body: return QGuiApplication::exec();
+      init:
+        static: true
+        params:
+          argc: int*
+          argv: char const**
+        return: QGuiApplication*
+        body: return new QGuiApplication(*argc, (char**)argv);
+
 
 includes:
-  - QString
-  - QByteArray
-  - QTimer
-  - QUrl
   - QDebug
 

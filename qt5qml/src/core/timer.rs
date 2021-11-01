@@ -2,8 +2,9 @@ use std::ptr;
 use std::time::Duration;
 
 use crate::core::{QObject, Signal, Slot};
-pub use crate::ffi::QTimer;
 use crate::QBox;
+
+pub struct QTimer(pub(crate) crate::ffi::QTimer);
 
 impl_qobject_ref!(QTimer);
 
@@ -37,31 +38,35 @@ impl From<TimerType> for i32 {
 impl QTimer {
     #[inline]
     pub fn new() -> QBox<QTimer> {
-        unsafe { QBox::from_raw(crate::ffi::qffi_QTimer_init(ptr::null_mut())) }
+        unsafe {
+            QBox::from_raw(std::mem::transmute(crate::ffi::qffi_QTimer_init(
+                ptr::null_mut(),
+            )))
+        }
     }
 
     #[inline]
     pub fn new_with_parent(parent: &mut QObject) -> *mut QTimer {
-        unsafe { crate::ffi::qffi_QTimer_init(parent) }
+        unsafe { std::mem::transmute(crate::ffi::qffi_QTimer_init(parent)) }
     }
 
     #[inline]
     pub fn is_active(&self) -> bool {
-        unsafe { crate::ffi::qffi_QTimer_isActive(self) }
+        unsafe { crate::ffi::qffi_QTimer_isActive(&self.0) }
     }
 
     #[inline]
     pub fn interval(&self) -> Duration {
-        Duration::from_millis(unsafe { crate::ffi::qffi_QTimer_interval(self) } as u64)
+        Duration::from_millis(unsafe { crate::ffi::qffi_QTimer_interval(&self.0) } as u64)
     }
 
     #[inline]
     pub fn set_interval(&mut self, duration: Duration) {
-        unsafe { crate::ffi::qffi_QTimer_setInterval(self, duration.as_millis() as i32) }
+        unsafe { crate::ffi::qffi_QTimer_setInterval(&mut self.0, duration.as_millis() as i32) }
     }
 
     pub fn remaining_time(&self) -> Option<Duration> {
-        let result = unsafe { crate::ffi::qffi_QTimer_remainingTime(self) };
+        let result = unsafe { crate::ffi::qffi_QTimer_remainingTime(&self.0) };
         if result < 0 {
             None
         } else {
@@ -71,36 +76,38 @@ impl QTimer {
 
     #[inline]
     pub fn is_single_shot(&self) -> bool {
-        unsafe { crate::ffi::qffi_QTimer_isSingleShot(self) }
+        unsafe { crate::ffi::qffi_QTimer_isSingleShot(&self.0) }
     }
 
     #[inline]
     pub fn set_single_shot(&mut self, single_shot: bool) {
-        unsafe { crate::ffi::qffi_QTimer_setSingleShot(self, single_shot) }
+        unsafe { crate::ffi::qffi_QTimer_setSingleShot(&mut self.0, single_shot) }
     }
 
     #[inline]
     pub fn timer_type(&self) -> TimerType {
-        unsafe { crate::ffi::qffi_QTimer_timerType(self) }.into()
+        unsafe { crate::ffi::qffi_QTimer_timerType(&self.0) }.into()
     }
 
     #[inline]
     pub fn set_timer_type(&mut self, timer_type: TimerType) {
-        unsafe { crate::ffi::qffi_QTimer_setTimerType(self, timer_type.into()) }
+        unsafe { crate::ffi::qffi_QTimer_setTimerType(&mut self.0, timer_type.into()) }
     }
 
     #[inline]
     pub fn start(&mut self) {
-        unsafe { crate::ffi::qffi_QTimer_start(self) }
+        unsafe { crate::ffi::qffi_QTimer_start(&mut self.0) }
     }
 
     pub fn start_with_interval(&mut self, duration: Duration) {
-        unsafe { crate::ffi::qffi_QTimer_startWithInterval(self, duration.as_millis() as i32) }
+        unsafe {
+            crate::ffi::qffi_QTimer_startWithInterval(&mut self.0, duration.as_millis() as i32)
+        }
     }
 
     #[inline]
     pub fn stop(&mut self) {
-        unsafe { crate::ffi::qffi_QTimer_stop(self) }
+        unsafe { crate::ffi::qffi_QTimer_stop(&mut self.0) }
     }
 
     pub fn start_slot() -> Slot {

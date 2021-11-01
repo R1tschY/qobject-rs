@@ -139,14 +139,21 @@ void qffi_QUrl_debug(QUrl const* self, QString* out) {
 }
 
 
+// QObject
+
+void qffi_QObject_destroy(QObject* self) {
+    delete self;
+}
+
+
+
+
+
 // QTimer
 QTimer* qffi_QTimer_init(QObject* parent) {
     return new QTimer(parent);
 }
 
-void qffi_QTimer_destroy(QTimer* self) {
-    delete self;
-}
 
 
 
@@ -193,6 +200,36 @@ void qffi_QTimer_startWithInterval(QTimer * self, int interval) {
 
 void qffi_QTimer_stop(QTimer * self) {
     self->stop();
+}
+
+
+// QCoreApplication
+
+
+
+
+
+int qffi_QCoreApplication_exec() {
+    return QCoreApplication::exec();
+}
+
+QCoreApplication* qffi_QCoreApplication_init(int* argc, char const** argv) {
+    return new QCoreApplication(*argc, (char**)argv);
+}
+
+
+// QGuiApplication
+
+
+
+
+
+int qffi_QGuiApplication_exec() {
+    return QGuiApplication::exec();
+}
+
+QGuiApplication* qffi_QGuiApplication_init(int* argc, char const** argv) {
+    return new QGuiApplication(*argc, (char**)argv);
 }
 
 }

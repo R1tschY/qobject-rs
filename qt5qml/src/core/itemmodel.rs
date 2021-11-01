@@ -1,10 +1,6 @@
 use std::ffi::c_void;
 use std::ptr;
 
-cpp! {{
-    #include <QAbstractItemModel>
-}}
-
 opaque_struct!(QAbstractItemModel);
 
 #[repr(C)]

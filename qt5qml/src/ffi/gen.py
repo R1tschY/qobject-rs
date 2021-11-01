@@ -22,7 +22,7 @@ class Method(BaseModel):
 
 
 class Class(BaseModel):
-    dtor: bool = True
+    dtor: Optional[bool] = None
     default_ctor: bool = Field(default=False, alias="default-ctor")
     copy_ctor: bool = Field(default=False, alias="copy-ctor")
     trivially: bool = False
@@ -31,6 +31,18 @@ class Class(BaseModel):
     ord: bool = False
     methods: Dict[str, Method] = Field(default_factory=dict)
     qobject: bool = False
+    qobject_default_ctor: bool = Field(default=False, alias="qobject-default-ctor")
+
+    @property
+    def generate_dtor(self) -> bool:
+        if self.dtor is not None:
+            return self.dtor
+
+        if self.qobject:
+            # Use QObject dtor
+            return False
+
+        return True
 
 
 class BindgenConfig(BaseModel):

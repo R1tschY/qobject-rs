@@ -23,6 +23,14 @@ pub type QUrl = _QUrl;
 pub struct QTimer {
     _unused: [u8; 0],
 }
+#[repr(C)]
+pub struct QCoreApplication {
+    _unused: [u8; 0],
+}
+#[repr(C)]
+pub struct QGuiApplication {
+    _unused: [u8; 0],
+}
 extern "C" {
     pub fn qffi_QString_init(self_: *mut QString);
 }
@@ -133,10 +141,10 @@ extern "C" {
     pub fn qffi_QUrl_debug(self_: *const QUrl, out: *mut QString);
 }
 extern "C" {
-    pub fn qffi_QTimer_init(parent: *mut QObject) -> *mut QTimer;
+    pub fn qffi_QObject_destroy(self_: *mut QObject);
 }
 extern "C" {
-    pub fn qffi_QTimer_destroy(self_: *mut QTimer);
+    pub fn qffi_QTimer_init(parent: *mut QObject) -> *mut QTimer;
 }
 extern "C" {
     pub fn qffi_QTimer_isActive(self_: *const QTimer) -> bool;
@@ -170,4 +178,22 @@ extern "C" {
 }
 extern "C" {
     pub fn qffi_QTimer_stop(self_: *mut QTimer);
+}
+extern "C" {
+    pub fn qffi_QCoreApplication_exec() -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn qffi_QCoreApplication_init(
+        argc: *mut ::std::os::raw::c_int,
+        argv: *mut *const ::std::os::raw::c_char,
+    ) -> *mut QCoreApplication;
+}
+extern "C" {
+    pub fn qffi_QGuiApplication_exec() -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn qffi_QGuiApplication_init(
+        argc: *mut ::std::os::raw::c_int,
+        argv: *mut *const ::std::os::raw::c_char,
+    ) -> *mut QGuiApplication;
 }

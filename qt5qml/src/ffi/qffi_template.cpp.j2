@@ -10,14 +10,14 @@ extern "C" {
 {%- if not cls.movable -%}
 
 {# QOBJECT CTOR #}
-{% if cls.qobject -%}
+{% if cls.qobject_default_ctor -%}
 {{ name }}* qffi_{{ name }}_init(QObject* parent) {
     return new {{ name }}(parent);
 }
 {% endif %}
 
 {#- DTOR #}
-{% if cls.dtor -%}
+{% if cls.generate_dtor -%}
 void qffi_{{ name }}_destroy({{ name }}* self) {
     delete self;
 }
@@ -43,7 +43,7 @@ void qffi_{{ name }}_init({{ name }}* self) {
 {% endif %}
 
 {#- DTOR #}
-{% if cls.dtor -%}
+{% if cls.generate_dtor -%}
 void qffi_{{ name }}_destroy({{ name }}* self) {
     self->~{{ name }}();
 }

@@ -17,6 +17,9 @@ typedef _{{ name }} {{ name }};
 {% endif -%}
 {% endfor -%}
 #else
+{% for cls in classes -%}
+    {{ '#include' }} <{{ cls }}>
+{% endfor -%}
 {% for include in includes -%}
     {{ '#include' }} <{{ include }}>
 {% endfor -%}
@@ -27,11 +30,11 @@ extern "C" {
 {% for name, cls in classes.items() -%}
 
 {% if not cls.movable %}
-{% if cls.qobject -%}
+{% if cls.qobject_default_ctor -%}
 {{ name }}* qffi_{{ name }}_init(QObject* parent);
 {% endif -%}
 
-{%- if cls.dtor -%}
+{%- if cls.generate_dtor -%}
 void qffi_{{ name }}_destroy({{ name }}* self);
 {% endif -%}
 
@@ -44,7 +47,7 @@ void qffi_{{ name }}_destroy({{ name }}* self);
     void qffi_{{ name }}_init({{ name }}* self);
 {% endif -%}
 
-{%- if cls.dtor -%}
+{%- if cls.generate_dtor -%}
     void qffi_{{ name }}_destroy({{ name }}* self);
 {% endif -%}
 

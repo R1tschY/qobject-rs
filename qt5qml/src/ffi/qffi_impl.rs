@@ -3,6 +3,7 @@ use std::cmp::Ordering;
 
 use super::qffi::*;
 
+
 impl QString {
     #[inline]
     pub fn new() -> Self {
@@ -151,14 +152,30 @@ impl Ord for QUrl {
     }
 }
 
-impl Drop for QTimer {
+impl Drop for QObject {
     #[inline]
     fn drop(&mut self) {
-        unsafe { qffi_QTimer_destroy(self) }
+        unsafe { qffi_QObject_destroy(self) }
     }
 }
 
+impl Drop for QTimer {
+    #[inline]
+    fn drop(&mut self) {
+        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::core::QObject) }
+    }
+}
 
+impl Drop for QCoreApplication {
+    #[inline]
+    fn drop(&mut self) {
+        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::core::QObject) }
+    }
+}
 
-
-
+impl Drop for QGuiApplication {
+    #[inline]
+    fn drop(&mut self) {
+        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::core::QObject) }
+    }
+}
