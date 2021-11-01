@@ -8,26 +8,31 @@ class _QByteArray {
 class _QUrl {
     void* _1;
 };
+class _QHashIntQByteArray {
+    void* _1;
+};
 
 
 #ifdef BINDGEN
-class QObject;
-typedef _QString QString;
-typedef _QByteArray QByteArray;
-typedef _QUrl QUrl;
-class QObject;
-class QTimer;
-class QCoreApplication;
-class QGuiApplication;
+    typedef _QString QString;
+    typedef _QByteArray QByteArray;
+    typedef _QUrl QUrl;
+    class QObject;
+    class QTimer;
+    class QCoreApplication;
+    class QGuiApplication;
+    typedef _QHashIntQByteArray QHashIntQByteArray;
 #else
-#include <QString>
-#include <QByteArray>
-#include <QUrl>
-#include <QObject>
-#include <QTimer>
-#include <QCoreApplication>
-#include <QGuiApplication>
-#include <QDebug>
+    #include <QString>
+    #include <QByteArray>
+    #include <QUrl>
+    #include <QObject>
+    #include <QTimer>
+    #include <QCoreApplication>
+    #include <QGuiApplication>
+    #include <QHash>
+    class QHashIntQByteArray;
+    #include <QDebug>
 #endif
 
 extern "C" {
@@ -89,6 +94,14 @@ QCoreApplication* qffi_QCoreApplication_init(int* argc, char const** argv);
 
 int qffi_QGuiApplication_exec();
 QGuiApplication* qffi_QGuiApplication_init(int* argc, char const** argv);
+
+
+void qffi_QHashIntQByteArray_init(QHashIntQByteArray* self);
+void qffi_QHashIntQByteArray_destroy(QHashIntQByteArray* self);
+void qffi_QHashIntQByteArray_clone(QHashIntQByteArray const* self, QHashIntQByteArray* new_);
+bool qffi_QHashIntQByteArray_equals(QHashIntQByteArray const* self, QHashIntQByteArray const* other);
+int qffi_QHashIntQByteArray_size(QHashIntQByteArray const* self);
+void qffi_QHashIntQByteArray_insert(QHashIntQByteArray * self, const int* key, const QByteArray* value);
 
 
 

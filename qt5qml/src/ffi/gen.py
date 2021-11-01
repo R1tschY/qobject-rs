@@ -32,6 +32,8 @@ class Class(BaseModel):
     methods: Dict[str, Method] = Field(default_factory=dict)
     qobject: bool = False
     qobject_default_ctor: bool = Field(default=False, alias="qobject-default-ctor")
+    overwrite_include: Optional[str] = Field(default=None, alias="overwrite-include")
+    overwrite_name: Optional[str] = Field(default=None, alias="overwrite-name")
 
     @property
     def generate_dtor(self) -> bool:

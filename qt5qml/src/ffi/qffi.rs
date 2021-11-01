@@ -13,12 +13,16 @@ pub struct _QUrl {
     pub _1: *mut ::std::os::raw::c_void,
 }
 #[repr(C)]
-pub struct QObject {
-    _unused: [u8; 0],
+pub struct _QHashIntQByteArray {
+    pub _1: *mut ::std::os::raw::c_void,
 }
 pub type QString = _QString;
 pub type QByteArray = _QByteArray;
 pub type QUrl = _QUrl;
+#[repr(C)]
+pub struct QObject {
+    _unused: [u8; 0],
+}
 #[repr(C)]
 pub struct QTimer {
     _unused: [u8; 0],
@@ -31,6 +35,7 @@ pub struct QCoreApplication {
 pub struct QGuiApplication {
     _unused: [u8; 0],
 }
+pub type QHashIntQByteArray = _QHashIntQByteArray;
 extern "C" {
     pub fn qffi_QString_init(self_: *mut QString);
 }
@@ -196,4 +201,32 @@ extern "C" {
         argc: *mut ::std::os::raw::c_int,
         argv: *mut *const ::std::os::raw::c_char,
     ) -> *mut QGuiApplication;
+}
+extern "C" {
+    pub fn qffi_QHashIntQByteArray_init(self_: *mut QHashIntQByteArray);
+}
+extern "C" {
+    pub fn qffi_QHashIntQByteArray_destroy(self_: *mut QHashIntQByteArray);
+}
+extern "C" {
+    pub fn qffi_QHashIntQByteArray_clone(
+        self_: *const QHashIntQByteArray,
+        new_: *mut QHashIntQByteArray,
+    );
+}
+extern "C" {
+    pub fn qffi_QHashIntQByteArray_equals(
+        self_: *const QHashIntQByteArray,
+        other: *const QHashIntQByteArray,
+    ) -> bool;
+}
+extern "C" {
+    pub fn qffi_QHashIntQByteArray_size(self_: *const QHashIntQByteArray) -> ::std::os::raw::c_int;
+}
+extern "C" {
+    pub fn qffi_QHashIntQByteArray_insert(
+        self_: *mut QHashIntQByteArray,
+        key: *const ::std::os::raw::c_int,
+        value: *const QByteArray,
+    );
 }

@@ -179,3 +179,46 @@ impl Drop for QGuiApplication {
         unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::core::QObject) }
     }
 }
+
+impl QHashIntQByteArray {
+    #[inline]
+    pub fn new() -> Self {
+        unsafe {
+            let mut ret = MaybeUninit::uninit();
+            qffi_QHashIntQByteArray_init(ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+}
+impl Default for QHashIntQByteArray {
+    #[inline]
+    fn default() -> Self {
+        QHashIntQByteArray::new()
+    }
+}
+
+impl Drop for QHashIntQByteArray {
+    #[inline]
+    fn drop(&mut self) {
+        unsafe { qffi_QHashIntQByteArray_destroy(self) }
+    }
+}
+
+impl Clone for QHashIntQByteArray {
+    #[inline]
+    fn clone(&self) -> Self {
+        unsafe {
+            let mut ret = MaybeUninit::uninit();
+            qffi_QHashIntQByteArray_clone(self, ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+}
+
+impl PartialEq for QHashIntQByteArray {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        unsafe { qffi_QHashIntQByteArray_equals(self, other) }
+    }
+}
+impl Eq for QHashIntQByteArray { }

@@ -3,7 +3,8 @@
 
 extern "C" {
 
-{% for name, cls in classes.items() %}
+{% for name, cls in classes.items() -%}
+{%- set cpp_name = cls.overwrite_name or name %}
 
 // {{ name }}
 
@@ -12,47 +13,47 @@ extern "C" {
 {# QOBJECT CTOR #}
 {% if cls.qobject_default_ctor -%}
 {{ name }}* qffi_{{ name }}_init(QObject* parent) {
-    return new {{ name }}(parent);
+    return ({{ name }}*)new {{ cpp_name }}(parent);
 }
 {% endif %}
 
 {#- DTOR #}
 {% if cls.generate_dtor -%}
 void qffi_{{ name }}_destroy({{ name }}* self) {
-    delete self;
+    delete ({{ cpp_name }}*)self;
 }
 {% endif %}
 
 {#- CLONE #}
 {% if cls.copy_ctor -%}
 {{ name }}* qffi_{{ name }}_clone({{ name }} const* self) {
-    return new {{ name }}(*self);
+    return ({{ name }}*)new {{ cpp_name }}(*({{ cpp_name }} const*)self);
 }
 {% endif -%}
 
 {%- else -%}{#- not movable #}
 
-static_assert(alignof({{ name }}) == alignof(_{{ name }}), "Alignment of {{ name }} incompatible");
-static_assert(sizeof({{ name }}) == sizeof(_{{ name }}), "Size of {{ name }} incompatible");
+static_assert(alignof({{ cpp_name }}) == alignof(_{{ name }}), "Alignment of {{ cpp_name }} incompatible");
+static_assert(sizeof({{ cpp_name }}) == sizeof(_{{ name }}), "Size of {{ cpp_name }} incompatible");
 
 {# CTOR #}
 {% if cls.default_ctor -%}
 void qffi_{{ name }}_init({{ name }}* self) {
-    new (self) {{ name }}();
+    new (({{ cpp_name }}*)self) {{ cpp_name }}();
 }
 {% endif %}
 
 {#- DTOR #}
 {% if cls.generate_dtor -%}
 void qffi_{{ name }}_destroy({{ name }}* self) {
-    self->~{{ name }}();
+    (({{ cpp_name }}*)self)->~{{ cpp_name }}();
 }
 {% endif %}
 
 {#- CLONE #}
 {% if cls.copy_ctor -%}
 void qffi_{{ name }}_clone({{ name }} const* self, {{ name }}* new_) {
-    new (new_) {{ name }}(*self);
+    new (({{ cpp_name }}*)new_) {{ cpp_name }}(*({{ cpp_name }} const*)self);
 }
 {% endif -%}
 
@@ -61,13 +62,15 @@ void qffi_{{ name }}_clone({{ name }} const* self, {{ name }}* new_) {
 {#- EQUALS #}
 {% if cls.eq -%}
 bool qffi_{{ name }}_equals({{ name }} const* self, {{ name }} const* other) {
-    return *self == *other;
+    return *(({{ cpp_name }} const*)self) == *(({{ cpp_name }} const*)other);
 }
 {% endif -%}
 
 {#- ORD #}
 {% if cls.ord -%}
-signed char qffi_{{ name }}_ord({{ name }} const* self, {{ name }} const* other) {
+signed char qffi_{{ name }}_ord({{ name }} const* _self, {{ name }} const* _other) {
+    auto* self = ({{ cpp_name }} const*) _self;
+    auto* other = ({{ cpp_name }} const*) _other;
     return int(*other < *self) - int(*self < *other);
 }
 {% endif -%}
@@ -76,7 +79,7 @@ signed char qffi_{{ name }}_ord({{ name }} const* self, {{ name }} const* other)
 {% for method_name, method in cls.methods.items() %}
 {{ method.return_ }} qffi_{{ name }}_{{ method_name }}(
     {%- if not method.static -%}
-        {{ name }} {% if method.const %}const{% endif %}* self
+        {{ name }} {% if method.const %}const{% endif %}* _self
         {%- if method.params %}, {% endif -%}
     {%- endif -%}
     {%- for name, type in method.params.items() -%}
@@ -84,6 +87,9 @@ signed char qffi_{{ name }}_ord({{ name }} const* self, {{ name }} const* other)
         {%- if not loop.last %}, {% endif -%}
     {%- endfor -%}
 ) {
+    {% if not method.static -%}
+    auto* self = ({{ cpp_name }} {% if method.const %}const{% endif %}*) _self;
+    {%- endif %}
     {{ method.body | trim | indent }}
 }
 {% endfor %}

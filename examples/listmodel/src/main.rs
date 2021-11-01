@@ -52,8 +52,8 @@ impl TestObjectPrivate {
 
     pub fn role_names(&self) -> QHashIntQByteArray {
         let mut result = QHashIntQByteArray::new();
-        result.insert(NAME_ROLE, "name".into());
-        result.insert(DESCRIPTION_ROLE, "description".into());
+        result.insert(&NAME_ROLE, &"name".into());
+        result.insert(&DESCRIPTION_ROLE, &"description".into());
         result
     }
 

@@ -219,6 +219,28 @@ classes:
         return: QGuiApplication*
         body: return new QGuiApplication(*argc, (char**)argv);
 
+  # == QHash<int, QByteArray> ==
+  QHashIntQByteArray:
+    overwrite-include: QHash
+    overwrite-name: QHash<int, QByteArray>
+    default-ctor: true
+    copy-ctor: true
+    copy-assign: true
+    movable: true
+    eq: true
+
+    methods:
+      size:
+        const: true
+        return: int
+        body: return self->size();
+      insert:
+        params:
+          key: const int*
+          value: const QByteArray*
+        body: self->insert(*key, *value);
+
+
 
 includes:
   - QDebug

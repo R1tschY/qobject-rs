@@ -8,17 +8,21 @@ class _{{ name }} {
 {% endfor %}
 
 #ifdef BINDGEN
-class QObject;
-{% for name, cls in classes.items() -%}
-{% if not cls.movable -%}
-class {{ name }};
-{% else -%}
-typedef _{{ name }} {{ name }};
-{% endif -%}
-{% endfor -%}
+{%- for name, cls in classes.items() %}
+    {% if not cls.movable -%}
+    class {{ name }};
+    {%- else -%}
+    typedef _{{ name }} {{ name }};
+    {%- endif -%}
+{%- endfor %}
 #else
-{% for cls in classes -%}
-    {{ '#include' }} <{{ cls }}>
+{%- for name, cls in classes.items() %}
+    {{ '#include' }} <{{ cls.overwrite_include or name }}>
+{%- endfor -%}
+{% for name, cls in classes.items() -%}
+    {%- if cls.overwrite_name %}
+    class {{ name }};
+    {% endif -%}
 {% endfor -%}
 {% for include in includes -%}
     {{ '#include' }} <{{ include }}>
