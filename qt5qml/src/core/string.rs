@@ -2,14 +2,16 @@ use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::ffi::{CStr, CString};
 use std::fmt::{self, Debug, Display};
+use std::mem::MaybeUninit;
 
 use crate::ffi;
-use crate::ffi::init_ffi_struct;
+use crate::ffi::{init_ffi_struct, QffiWrapper};
 use std::os::raw::c_char;
 
 #[repr(C)]
 #[derive(Clone, Default, Eq, PartialEq)]
 pub struct QString(pub(crate) crate::ffi::QString);
+impl_ffi_trait!(QString);
 
 impl QString {
     #[inline]
@@ -27,28 +29,26 @@ impl QString {
 
     pub fn from_utf8(input: &str) -> Self {
         let bytes = input.as_bytes();
-        Self(init_ffi_struct(|dest| unsafe {
+        QString::create(|dest| unsafe {
             ffi::qffi_QString_fromUtf8(bytes.as_ptr() as *const c_char, bytes.len() as i32, dest)
-        }))
+        })
     }
 
     pub fn from_utf16(bytes: &[u16]) -> Self {
-        Self(init_ffi_struct(|dest| unsafe {
+        QString::create(|dest| unsafe {
             ffi::qffi_QString_fromUtf16(bytes.as_ptr(), bytes.len() as i32, dest)
-        }))
+        })
     }
 
     pub unsafe fn from_utf16_unchecked(bytes: &[u16]) -> Self {
-        Self(init_ffi_struct(|dest| {
+        QString::create(|dest| {
             ffi::qffi_QString_fromUtf16Unchecked(bytes.as_ptr(), bytes.len() as i32, dest)
-        }))
+        })
     }
 
     #[inline]
     pub fn to_utf8(&self) -> QByteArray {
-        QByteArray(init_ffi_struct(|dest| unsafe {
-            ffi::qffi_QString_toUtf8(&self.0, dest)
-        }))
+        QByteArray::create(|dest| unsafe { ffi::qffi_QString_toUtf8(&self.0, dest) })
     }
 
     #[allow(clippy::inherent_to_string_shadow_display)]
@@ -191,6 +191,7 @@ impl<'a> ToQString for Option<Cow<'a, str>> {
 #[repr(C)]
 #[derive(Clone, Default, Eq, PartialEq)]
 pub struct QByteArray(pub(crate) crate::ffi::QByteArray);
+impl_ffi_trait!(QByteArray);
 
 impl QByteArray {
     pub fn as_slice(&self) -> &[u8] {
@@ -202,9 +203,9 @@ impl QByteArray {
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Self {
-        Self(init_ffi_struct(|dest| unsafe {
+        QByteArray::create(|dest| unsafe {
             ffi::qffi_QByteArray_fromData(bytes.as_ptr() as *const c_char, bytes.len() as i32, dest)
-        }))
+        })
     }
 }
 

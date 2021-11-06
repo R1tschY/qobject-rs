@@ -7,6 +7,7 @@ use std::collections::HashMap;
 #[repr(C)]
 #[derive(Clone, Default, Eq, PartialEq)]
 pub struct QHashIntQByteArray(pub(crate) crate::ffi::QHashIntQByteArray);
+impl_ffi_trait!(QHashIntQByteArray);
 
 impl QHashIntQByteArray {
     #[inline]

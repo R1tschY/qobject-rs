@@ -1,7 +1,3 @@
-cpp! {{
-    #include <QDebug>
-}}
-
 mod application;
 mod debug;
 mod hash;
@@ -24,4 +20,4 @@ pub use self::object::*;
 pub use self::string::*;
 pub use self::timer::*;
 pub use self::url::*;
-pub use self::variant::*;
+pub use self::variant::QVariant;

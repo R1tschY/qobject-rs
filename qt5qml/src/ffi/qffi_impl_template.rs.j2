@@ -35,7 +35,7 @@ impl Drop for {{ name }} {
 impl Drop for {{ name }} {
     #[inline]
     fn drop(&mut self) {
-        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::core::QObject) }
+        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::ffi::QObject) }
     }
 }
 {% endif -%}

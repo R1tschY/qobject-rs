@@ -2,6 +2,7 @@ use crate::core::QApplicationFactory;
 use crate::ffi::{qffi_QGuiApplication_exec, qffi_QGuiApplication_init};
 use std::os::raw::c_char;
 
+#[repr(C)]
 pub struct QGuiApplication(pub(crate) crate::ffi::QGuiApplication);
 impl_qobject_ref!(QGuiApplication);
 

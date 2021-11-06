@@ -21,13 +21,6 @@ impl Default for QString {
     }
 }
 
-impl Drop for QString {
-    #[inline]
-    fn drop(&mut self) {
-        unsafe { qffi_QString_destroy(self) }
-    }
-}
-
 impl Clone for QString {
     #[inline]
     fn clone(&self) -> Self {
@@ -64,13 +57,6 @@ impl Default for QByteArray {
     }
 }
 
-impl Drop for QByteArray {
-    #[inline]
-    fn drop(&mut self) {
-        unsafe { qffi_QByteArray_destroy(self) }
-    }
-}
-
 impl Clone for QByteArray {
     #[inline]
     fn clone(&self) -> Self {
@@ -104,13 +90,6 @@ impl Default for QUrl {
     #[inline]
     fn default() -> Self {
         QUrl::new()
-    }
-}
-
-impl Drop for QUrl {
-    #[inline]
-    fn drop(&mut self) {
-        unsafe { qffi_QUrl_destroy(self) }
     }
 }
 
@@ -155,28 +134,184 @@ impl Ord for QUrl {
 impl Drop for QObject {
     #[inline]
     fn drop(&mut self) {
-        unsafe { qffi_QObject_destroy(self) }
+        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::ffi::QObject) }
+    }
+}
+
+impl QMetaMethod {
+    #[inline]
+    pub fn new() -> Self {
+        unsafe {
+            let mut ret = MaybeUninit::uninit();
+            qffi_QMetaMethod_init(ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+}
+impl Default for QMetaMethod {
+    #[inline]
+    fn default() -> Self {
+        QMetaMethod::new()
+    }
+}
+
+impl Drop for QMetaMethod {
+    #[inline]
+    fn drop(&mut self) {
+        unsafe { qffi_QMetaMethod_destroy(self) }
+    }
+}
+
+impl PartialEq for QMetaMethod {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        unsafe { qffi_QMetaMethod_equals(self, other) }
+    }
+}
+impl Eq for QMetaMethod { }
+
+impl QMetaEnum {
+    #[inline]
+    pub fn new() -> Self {
+        unsafe {
+            let mut ret = MaybeUninit::uninit();
+            qffi_QMetaEnum_init(ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+}
+impl Default for QMetaEnum {
+    #[inline]
+    fn default() -> Self {
+        QMetaEnum::new()
+    }
+}
+
+impl QMetaProperty {
+    #[inline]
+    pub fn new() -> Self {
+        unsafe {
+            let mut ret = MaybeUninit::uninit();
+            qffi_QMetaProperty_init(ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+}
+impl Default for QMetaProperty {
+    #[inline]
+    fn default() -> Self {
+        QMetaProperty::new()
+    }
+}
+
+impl Drop for QMetaProperty {
+    #[inline]
+    fn drop(&mut self) {
+        unsafe { qffi_QMetaProperty_destroy(self) }
+    }
+}
+
+impl QMetaObjectConnection {
+    #[inline]
+    pub fn new() -> Self {
+        unsafe {
+            let mut ret = MaybeUninit::uninit();
+            qffi_QMetaObjectConnection_init(ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+}
+impl Default for QMetaObjectConnection {
+    #[inline]
+    fn default() -> Self {
+        QMetaObjectConnection::new()
+    }
+}
+
+impl Clone for QMetaObjectConnection {
+    #[inline]
+    fn clone(&self) -> Self {
+        unsafe {
+            let mut ret = MaybeUninit::uninit();
+            qffi_QMetaObjectConnection_clone(self, ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+}
+
+impl QVariant {
+    #[inline]
+    pub fn new() -> Self {
+        unsafe {
+            let mut ret = MaybeUninit::uninit();
+            qffi_QVariant_init(ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+}
+impl Default for QVariant {
+    #[inline]
+    fn default() -> Self {
+        QVariant::new()
+    }
+}
+
+impl Clone for QVariant {
+    #[inline]
+    fn clone(&self) -> Self {
+        unsafe {
+            let mut ret = MaybeUninit::uninit();
+            qffi_QVariant_clone(self, ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+}
+
+impl PartialEq for QVariant {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        unsafe { qffi_QVariant_equals(self, other) }
+    }
+}
+impl Eq for QVariant { }
+
+impl PartialOrd for QVariant {
+    #[inline]
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(Ord::cmp(self, other))
+    }
+}
+
+impl Ord for QVariant {
+    #[inline]
+    fn cmp(&self, other: &Self) -> Ordering {
+        match unsafe { qffi_QVariant_cmp(self, other) } {
+            -1 => Ordering::Less,
+            0 => Ordering::Equal,
+            1 => Ordering::Greater,
+            _ => unreachable!(),
+        }
     }
 }
 
 impl Drop for QTimer {
     #[inline]
     fn drop(&mut self) {
-        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::core::QObject) }
+        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::ffi::QObject) }
     }
 }
 
 impl Drop for QCoreApplication {
     #[inline]
     fn drop(&mut self) {
-        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::core::QObject) }
+        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::ffi::QObject) }
     }
 }
 
 impl Drop for QGuiApplication {
     #[inline]
     fn drop(&mut self) {
-        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::core::QObject) }
+        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::ffi::QObject) }
     }
 }
 
@@ -194,13 +329,6 @@ impl Default for QHashIntQByteArray {
     #[inline]
     fn default() -> Self {
         QHashIntQByteArray::new()
-    }
-}
-
-impl Drop for QHashIntQByteArray {
-    #[inline]
-    fn drop(&mut self) {
-        unsafe { qffi_QHashIntQByteArray_destroy(self) }
     }
 }
 
@@ -226,6 +354,6 @@ impl Eq for QHashIntQByteArray { }
 impl Drop for QThread {
     #[inline]
     fn drop(&mut self) {
-        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::core::QObject) }
+        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::ffi::QObject) }
     }
 }

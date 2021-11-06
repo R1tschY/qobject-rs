@@ -6,6 +6,8 @@ classes:
     copy-assign: true
     movable: true
     eq: true
+    layout:
+      __d: void*
 
     methods:
       size:
@@ -24,31 +26,31 @@ classes:
         params:
           data: const char*
           size: int
-          dest: QString*
+          result: QString*
         static: true
-        body: new (dest) QString(QString::fromUtf8(data, size));
+        body: qffi_call_ctor(result, QString::fromUtf8(data, size));
 
       fromUtf16:
         params:
           data: const unsigned short*
           size: int
-          dest: QString*
+          result: QString*
         static: true
-        body: new (dest) QString(QString::fromUtf16(data, size));
+        body: qffi_call_ctor(result, QString::fromUtf16(data, size));
 
       fromUtf16Unchecked:
         params:
           data: const unsigned short*
           size: int
-          dest: QString*
+          result: QString*
         static: true
-        body: new (dest) QString((const QChar*)(data), size);
+        body: qffi_call_ctor(result, (const QChar*)(data), size);
 
       toUtf8:
         params:
-          dest: QByteArray*
+          result: QByteArray*
         const: true
-        body: new (dest) QByteArray(self->toUtf8());
+        body: qffi_call_ctor(result, self->toUtf8());
 
       utf16:
         params:
@@ -73,15 +75,17 @@ classes:
     copy-assign: true
     movable: true
     eq: true
+    layout:
+      __d: void*
 
     methods:
       fromData:
         params:
           data: const char*
           len: int
-          dest: QByteArray*
+          result: QByteArray*
         static: true
-        body: new (dest) QByteArray(data, len);
+        body: qffi_call_ctor(result, data, len);
 
       data:
         params:
@@ -108,21 +112,23 @@ classes:
     movable: true
     eq: true
     ord: true
+    layout:
+      __d: void*
 
     methods:
       fromString:
         static: true
         params:
           value: const QString*
-          out: QUrl*
-        body: new (out) QUrl(*value);
+          result: QUrl*
+        body: qffi_call_ctor(result, *value);
 
       fromLocalFile:
         static: true
         params:
           value: const QString*
-          out: QUrl*
-        body: new (out) QUrl(QUrl::fromLocalFile(*value));
+          result: QUrl*
+        body: qffi_call_ctor(result, QUrl::fromLocalFile(*value));
 
       debug:
         const: true
@@ -135,6 +141,399 @@ classes:
   # == QObject ==
   QObject:
     dtor: true
+    qobject: true
+    qobject-default-ctor: true
+
+    methods:
+      inherits:
+        const: true
+        params:
+          class_name: const char*
+        return: bool
+        body: return self->inherits(class_name);
+
+      deleteLater:
+        body: self->deleteLater();
+
+      metaObject:
+        const: true
+        return: const QMetaObject*
+        body: return self->metaObject();
+
+      moveToThread:
+        params:
+          targetThread: QThread*
+        body: self->moveToThread(targetThread);
+
+      connect:
+        const: true
+        params:
+          signal: const char*
+          receiver: const QObject*
+          method: const char*
+          type_: int
+          result: QMetaObjectConnection*
+        body: |
+          qffi_call_ctor((QMetaObject::Connection*)result,
+            self->connect(self, signal, receiver, method, Qt::ConnectionType(type_)));
+
+      disconnectConnection:
+        static: true
+        params:
+          connection: const QMetaObjectConnection*
+        return: bool
+        body: return QObject::disconnect(*(const QMetaObject::Connection*)connection);
+
+      disconnect2:
+        const: true
+        params:
+          receiver: const QObject*
+          method: const char*
+        return: bool
+        body: return self->disconnect(receiver, method);
+
+      disconnect3:
+        const: true
+        params:
+          signal: const char*
+          receiver: const QObject*
+          method: const char*
+        return: bool
+        body: return self->disconnect(signal, receiver, method);
+
+      destroy:
+        body: qffi_call_dtor(self);
+
+  # == QGenericArgument ==
+  QGenericArgument:
+    layout:
+      data: const void*
+      name: const char*
+
+  # == QGenericReturnArgument ==
+  QGenericReturnArgument:
+    layout:
+      data: const void*
+      name: const char*
+
+  # == QMetaObject ==
+  QMetaObject:
+    movable: false
+
+    methods:
+      className:
+        const: true
+        return: const char*
+        body: return self->className();
+      propertyCount:
+        const: true
+        return: int
+        body: return self->propertyCount();
+      propertyOffset:
+        const: true
+        return: int
+        body: return self->propertyOffset();
+      property:
+        const: true
+        params:
+          index: int
+        return: QMetaProperty
+        body: return self->property(index);
+      invokeMethod:
+        static: true
+        params:
+          obj: QObject*
+          member: const char*
+          ty: int
+          args: const QGenericArgument*
+        return: bool
+        body: |
+          return QMetaObject::invokeMethod(
+            obj, member, Qt::ConnectionType(ty), args[0], args[1], args[2], args[3], args[4], args[5],
+            args[6], args[7], args[8], args[9]);
+      invokeMethodAndReturn:
+        static: true
+        params:
+          obj: QObject*
+          member: const char*
+          ty: int
+          ret: const QGenericReturnArgument*
+          args: const QGenericArgument*
+        return: bool
+        body: |
+          return QMetaObject::invokeMethod(
+            obj, member, Qt::ConnectionType(ty), *ret, args[0], args[1], args[2], args[3], args[4], args[5],
+            args[6], args[7], args[8], args[9]);
+
+  # == QMetaMethod ==
+  QMetaMethod:
+    movable: true
+    default-ctor: true
+    dtor: trivial
+    eq: true
+
+    layout:
+      __mobj: const QMetaObject*
+      __handle: unsigned int
+
+  # == QMetaEnum ==
+  QMetaEnum:
+    movable: true
+    default-ctor: true
+    layout:
+      __mobj: const QMetaObject*
+      __handle: unsigned int
+
+  # == QMetaProperty ==
+  QMetaProperty:
+    movable: true
+    default-ctor: true
+    dtor: trivial
+
+    layout:
+      __mobj: const QMetaObject*
+      __handle: unsigned int
+      __idx: int
+      __menum: QMetaEnum
+
+    methods:
+      hasNotifySignal:
+        const: true
+        return: bool
+        body: return self->hasNotifySignal();
+      isConstant:
+        const: true
+        return: bool
+        body: return self->isConstant();
+      isDesignable:
+        const: true
+        return: bool
+        body: return self->isDesignable();
+      isEnumType:
+        const: true
+        return: bool
+        body: return self->isEnumType();
+      isFinal:
+        const: true
+        return: bool
+        body: return self->isFinal();
+      isFlagType:
+        const: true
+        return: bool
+        body: return self->isFlagType();
+      isReadable:
+        const: true
+        return: bool
+        body: return self->isReadable();
+      isResettable:
+        const: true
+        return: bool
+        body: return self->isResettable();
+      isScriptable:
+        const: true
+        return: bool
+        body: return self->isScriptable();
+      isStored:
+        const: true
+        return: bool
+        body: return self->isStored();
+      isUser:
+        const: true
+        return: bool
+        body: return self->isUser();
+      isWritable:
+        const: true
+        return: bool
+        body: return self->isWritable();
+      name:
+        const: true
+        return: const char*
+        body: return self->name();
+      notifySignal:
+        const: true
+        return: QMetaMethod
+        body: return self->notifySignal();
+      notifySignalIndex:
+        const: true
+        return: int
+        body: return self->notifySignalIndex();
+      propertyIndex:
+        const: true
+        return: int
+        body: return self->propertyIndex();
+      read:
+        const: true
+        params:
+          object: const QObject*
+          result: QVariant*
+        body: qffi_call_ctor(result, self->read(object));
+      readOnGadget:
+        const: true
+        params:
+          gadget: const void*
+          result: QVariant*
+        body: qffi_call_ctor(result, self->readOnGadget(gadget));
+      reset:
+        const: true
+        params:
+          object: QObject*
+        return: bool
+        body: return self->reset(object);
+      resetOnGadget:
+        const: true
+        params:
+          gadget: void*
+        return: bool
+        body: return self->resetOnGadget(gadget);
+      revision:
+        const: true
+        return: int
+        body: return self->revision();
+      typeName:
+        const: true
+        return: const char*
+        body: return self->typeName();
+      write:
+        const: true
+        params:
+          object: QObject*
+          value: const QVariant*
+        return: bool
+        body: return self->write(object, *value);
+      writeOnGadget:
+        const: true
+        params:
+          gadget: void*
+          value: const QVariant*
+        return: bool
+        body: return self->writeOnGadget(gadget, *value);
+
+  # == QMetaObject::Connection ==
+  QMetaObjectConnection:
+    overwrite-name: QMetaObject::Connection
+    overwrite-include: QMetaObject
+    copy-ctor: true
+    copy-assign: true
+    default-ctor: true
+    movable: true
+    layout:
+      __d: void*
+
+    methods:
+      isValid:
+        const: true
+        return: bool
+        body: return *self;
+
+  # == QVariant ==
+  QVariant:
+    movable: true
+    copy-ctor: true
+    copy-assign: true
+    default-ctor: true
+    eq: true
+    ord: true
+
+    layout:
+      __data: void*
+      __type: unsigned int
+
+    methods:
+      isValid:
+        const: true
+        return: bool
+        body: return self->isValid();
+      isNull:
+        const: true
+        return: bool
+        body: return self->isNull();
+
+      # {% set types = {} %}
+      # {% set _ = types.update({'int': 'int'}) %}
+      # {% set _ = types.update({'uint': 'unsigned int'}) %}
+      # {% set _ = types.update({'int64': 'long long'}) %}
+      # {% set _ = types.update({'uint64': 'unsigned long long'}) %}
+      # {% set _ = types.update({'bool': 'bool'}) %}
+      # {% set _ = types.update({'float': 'float'}) %}
+      # {% set _ = types.update({'double': 'double'}) %}
+      # {% for name, ty in types.items() %}
+      "from_{{ name }}":
+          static: true
+          params:
+            value: "{{ ty }}"
+            result: QVariant*
+          body: qffi_call_ctor(result, value);
+      # {% endfor %}
+
+      fromByteArray:
+        static: true
+        params:
+          value: const QByteArray*
+          result: QVariant*
+        body: qffi_call_ctor(result, *value);
+
+      fromString:
+        static: true
+        params:
+          value: const QString*
+          result: QVariant*
+        body: qffi_call_ctor(result, *value);
+
+      fromUtf8:
+        static: true
+        params:
+          data: const char*
+          size: int
+          result: QVariant*
+        body: qffi_call_ctor(result, QString::fromUtf8(data, size));
+
+      # {% set types = {} %}
+      # {% set _ = types.update({'toInt': 'int'}) %}
+      # {% set _ = types.update({'toUInt': 'unsigned int'}) %}
+      # {% set _ = types.update({'toLongLong': 'long long'}) %}
+      # {% set _ = types.update({'toULongLong': 'unsigned long long'}) %}
+      # {% set _ = types.update({'toFloat': 'float'}) %}
+      # {% set _ = types.update({'toDouble': 'double'}) %}
+      # {% for name, ty in types.items() %}
+      "{{ name }}":
+        const: true
+        params:
+          ok: bool*
+        return: "{{ ty }}"
+        body: "return self->{{name}}(ok);"
+      # {% endfor %}
+
+      toBool:
+        const: true
+        return: bool
+        body: return self->toBool();
+
+      toByteArray:
+        const: true
+        params:
+          result: QByteArray*
+        body: qffi_call_ctor(result, self->toByteArray());
+
+      toString:
+        const: true
+        params:
+          result: QString*
+        body: qffi_call_ctor(result, self->toString());
+
+      toUtf8:
+        const: true
+        params:
+          result: QByteArray*
+        body: qffi_call_ctor(result, self->toString().toUtf8());
+
+      debug:
+        const: true
+        params:
+          result: QByteArray*
+        body: |
+          QString tmp;
+          QDebug(&tmp).nospace() << *self;
+          qffi_call_ctor(result, tmp.toUtf8());
 
   # == QTimer ==
   QTimer:
@@ -229,6 +628,9 @@ classes:
     movable: true
     eq: true
 
+    layout:
+      __d: void*
+
     methods:
       size:
         const: true
@@ -243,8 +645,6 @@ classes:
   # == QThread ==
   QThread:
     qobject: true
-
-
 
 includes:
   - QDebug

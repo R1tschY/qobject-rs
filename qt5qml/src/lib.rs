@@ -78,13 +78,21 @@ macro_rules! impl_qobject_ref {
     };
 }
 
-#[macro_export]
-macro_rules! new_qobject_helper {
-    ($ty:ty, $cpp:expr) => {
-        impl $ty {
-            pub fn new(parent: Option<&mut QObject>) -> QBox<$ty> {
-                let parent = parent.map_or(ptr::null_mut(), |p| p as *mut QObject);
-                unsafe { QBox::from_raw($cpp) }
+macro_rules! impl_ffi_trait {
+    ($ty:ident) => {
+        impl crate::ffi::QffiWrapper for $ty {
+            type QffiObject = crate::ffi::$ty;
+
+            fn create_from_ffi_object(value: crate::ffi::$ty) -> Self {
+                Self(value)
+            }
+
+            fn to_inner(&self) -> &Self::QffiObject {
+                &self.0
+            }
+
+            fn to_inner_mut(&mut self) -> &mut Self::QffiObject {
+                &mut self.0
             }
         }
     };

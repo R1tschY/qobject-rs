@@ -50,7 +50,7 @@ fn object_disconnect_connection() {
         ConnectionType::default(),
     );
     assert!(connection.is_valid());
-    assert!(connection.disconnect());
+    assert!(QObject::disconnect(&connection));
 }
 
 #[test]
@@ -102,8 +102,7 @@ fn object_disconnect() {
     );
     assert!(connection.is_valid());
 
-    let success = QObject::disconnect(
-        &object,
+    let success = object.disconnect(
         QObject::destroyed_signal(),
         timer.as_qobject(),
         QTimer::start_slot(),
@@ -126,8 +125,7 @@ fn object_disconnect_nothing() {
     );
     assert!(connection.is_valid());
 
-    let success = QObject::disconnect(
-        &object,
+    let success = object.disconnect(
         QObject::destroyed_signal(),
         timer.as_qobject(),
         QTimer::start_slot(),

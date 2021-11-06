@@ -1,47 +1,37 @@
 use crate::core::{ConnectionType, ConnectionTypeKind, QObject, QString, QVariant};
+use crate::ffi::*;
 use std::ffi::{c_void, CStr};
+use std::mem::transmute;
 use std::os::raw::c_char;
 use std::ptr;
 
-cpp! {{
-    #include <QMetaObject>
-    #include <QMetaProperty>
-}}
-
-opaque_struct!(QMetaObject);
-
-cpp_class!(
-    #[derive(Clone)]
-    pub unsafe struct Connection as "QMetaObject::Connection"
-);
+#[repr(C)]
+pub struct QMetaObject(pub(crate) crate::ffi::QMetaObject);
+impl_ffi_trait!(QMetaObject);
 
 impl QMetaObject {
     pub fn class_name(&self) -> &CStr {
-        unsafe {
-            CStr::from_ptr(
-                cpp!([self as "const QMetaObject*"] -> *const c_char as "const char*" {
-                    return self->className();
-                }),
-            )
-        }
+        unsafe { CStr::from_ptr(qffi_QMetaObject_className(self.to_inner())) }
     }
 
     pub fn property_count(&self) -> i32 {
-        cpp!(unsafe [self as "const QMetaObject*"] -> i32 as "int" {
-            return self->propertyCount();
-        })
+        unsafe { qffi_QMetaObject_propertyCount(self.to_inner()) }
     }
 
     pub fn property_offset(&self) -> i32 {
-        cpp!(unsafe [self as "const QMetaObject*"] -> i32 as "int" {
-            return self->propertyOffset();
-        })
+        unsafe { qffi_QMetaObject_propertyOffset(self.to_inner()) }
     }
 
     pub fn property(&self, index: i32) -> QMetaProperty {
-        cpp!(unsafe [self as "const QMetaObject*", index as "int"] -> QMetaProperty as "QMetaProperty" {
-            return self->property(index);
-        })
+        unsafe { QMetaProperty(qffi_QMetaObject_property(self.to_inner(), index)) }
+    }
+
+    pub fn properties(&self) -> PropertyIterator {
+        PropertyIterator {
+            obj: self,
+            index: 0,
+            count: self.property_count(),
+        }
     }
 
     pub fn own_properties(&self) -> PropertyIterator {
@@ -60,19 +50,14 @@ impl QMetaObject {
     }
 }
 
-impl Connection {
+#[repr(C)]
+pub struct QMetaObjectConnection(pub(crate) crate::ffi::QMetaObjectConnection);
+impl_ffi_trait!(QMetaObjectConnection);
+
+impl QMetaObjectConnection {
     /// Connection was successful established
     pub fn is_valid(&self) -> bool {
-        cpp!(unsafe [self as "const QMetaObject::Connection*"] -> bool as "bool" {
-            return *self;
-        })
-    }
-
-    /// Calls QObject::disconnect with connection
-    pub fn disconnect(&self) -> bool {
-        cpp!(unsafe [self as "const QMetaObject::Connection*"] -> bool as "bool" {
-            return QObject::disconnect(*self);
-        })
+        unsafe { qffi_QMetaObjectConnection_isValid(self.to_inner()) }
     }
 }
 
@@ -100,73 +85,64 @@ impl<'t> Iterator for PropertyIterator<'t> {
     }
 }
 
-cpp_class!(#[derive(Clone)] pub unsafe struct QMetaProperty as "QMetaProperty");
+#[repr(C)]
+pub struct QMetaProperty(pub(crate) crate::ffi::QMetaProperty);
+impl_ffi_trait!(QMetaProperty);
 
 impl QMetaProperty {
+    #[inline]
     pub fn has_notify_signal(&self) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
-            return self->hasNotifySignal();
-        })
+        unsafe { qffi_QMetaProperty_hasNotifySignal(self.to_inner()) }
     }
 
+    #[inline]
     pub fn is_constant(&self) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
-            return self->isConstant();
-        })
+        unsafe { qffi_QMetaProperty_isConstant(self.to_inner()) }
     }
 
+    #[inline]
     pub fn is_designable(&self) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
-            return self->isDesignable();
-        })
+        unsafe { qffi_QMetaProperty_isDesignable(self.to_inner()) }
     }
 
+    #[inline]
     pub fn is_enum_type(&self) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
-            return self->isEnumType();
-        })
+        unsafe { qffi_QMetaProperty_isEnumType(self.to_inner()) }
     }
 
+    #[inline]
     pub fn is_final(&self) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
-            return self->isFinal();
-        })
+        unsafe { qffi_QMetaProperty_isFinal(self.to_inner()) }
     }
 
+    #[inline]
     pub fn is_flag_type(&self) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
-            return self->isFlagType();
-        })
+        unsafe { qffi_QMetaProperty_isFlagType(self.to_inner()) }
     }
 
+    #[inline]
     pub fn is_readable(&self) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
-            return self->isReadable();
-        })
+        unsafe { qffi_QMetaProperty_isReadable(self.to_inner()) }
     }
 
+    #[inline]
     pub fn is_resettable(&self) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
-            return self->isResettable();
-        })
+        unsafe { qffi_QMetaProperty_isResettable(self.to_inner()) }
     }
 
+    #[inline]
     pub fn is_scriptable(&self) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
-            return self->isScriptable();
-        })
+        unsafe { qffi_QMetaProperty_isScriptable(self.to_inner()) }
     }
 
+    #[inline]
     pub fn is_stored(&self) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
-            return self->isStored();
-        })
+        unsafe { qffi_QMetaProperty_isStored(self.to_inner()) }
     }
 
+    #[inline]
     pub fn is_user(&self) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
-            return self->isUser();
-        })
+        unsafe { qffi_QMetaProperty_isUser(self.to_inner()) }
     }
 
     #[inline]
@@ -174,100 +150,84 @@ impl QMetaProperty {
         self.is_readable()
     }
 
+    #[inline]
     pub fn is_writable(&self) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> bool as "bool" {
-            return self->isWritable();
-        })
+        unsafe { qffi_QMetaProperty_isWritable(self.to_inner()) }
     }
 
+    #[inline]
     pub fn name(&self) -> &CStr {
-        unsafe {
-            CStr::from_ptr(
-                cpp!([self as "const QMetaProperty*"] -> *const c_char as "const char*" {
-                    return self->name();
-                }),
-            )
-        }
+        unsafe { CStr::from_ptr(qffi_QMetaProperty_name(self.to_inner())) }
     }
 
+    #[inline]
     pub fn notify_signal(&self) -> QMetaMethod {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> QMetaMethod as "QMetaMethod" {
-            return self->notifySignal();
-        })
+        unsafe { QMetaMethod(qffi_QMetaProperty_notifySignal(self.to_inner())) }
     }
 
+    #[inline]
     pub fn notify_signal_index(&self) -> i32 {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> i32 as "int" {
-            return self->notifySignalIndex();
-        })
+        unsafe { qffi_QMetaProperty_notifySignalIndex(self.to_inner()) }
     }
 
+    #[inline]
     pub fn property_index(&self) -> i32 {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> i32 as "int" {
-            return self->propertyIndex();
-        })
+        unsafe { qffi_QMetaProperty_propertyIndex(self.to_inner()) }
     }
 
+    #[inline]
     pub fn read(&self, object: &QObject) -> QVariant {
-        cpp!(unsafe [self as "const QMetaProperty*",
-                     object as "const QObject*"] -> QVariant as "QVariant" {
-            return self->read(object);
-        })
-    }
-
-    pub unsafe fn read_on_gadget(&self, gadget: &c_void) -> QVariant {
-        cpp!(unsafe [self as "const QMetaProperty*",
-                     gadget as "const void*"] -> QVariant as "QVariant" {
-            return self->readOnGadget(gadget);
-        })
-    }
-
-    pub fn reset(&self, object: &mut QObject) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*", object as "QObject*"] -> bool as "bool" {
-            return self->reset(object);
-        })
-    }
-
-    pub unsafe fn reset_on_gadget(&self, gadget: &mut c_void) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*", gadget as "void*"] -> bool as "bool" {
-            return self->resetOnGadget(gadget);
-        })
-    }
-
-    pub fn revision(&self) -> i32 {
-        cpp!(unsafe [self as "const QMetaProperty*"] -> i32 as "int" {
-            return self->revision();
-        })
-    }
-
-    pub fn type_name(&self) -> &CStr {
         unsafe {
-            CStr::from_ptr(
-                cpp!([self as "const QMetaProperty*"] -> *const c_char as "const char*" {
-                    return self->typeName();
-                }),
-            )
+            QVariant(init_ffi_struct(|v| {
+                qffi_QMetaProperty_read(self.to_inner(), object.to_inner(), v)
+            }))
         }
     }
 
-    pub fn write(&self, object: &mut QObject, value: &QVariant) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*",
-                     object as "QObject*",
-                     value as "const QVariant*"] -> bool as "bool" {
-            return self->write(object, *value);
-        })
+    #[inline]
+    pub unsafe fn read_on_gadget(&self, gadget: &c_void) -> QVariant {
+        unsafe {
+            QVariant(init_ffi_struct(|v| {
+                qffi_QMetaProperty_readOnGadget(self.to_inner(), gadget, v)
+            }))
+        }
     }
 
+    #[inline]
+    pub fn reset(&self, object: &mut QObject) -> bool {
+        unsafe { qffi_QMetaProperty_reset(self.to_inner(), object.to_inner_mut()) }
+    }
+
+    #[inline]
+    pub unsafe fn reset_on_gadget(&self, gadget: &mut c_void) -> bool {
+        unsafe { qffi_QMetaProperty_resetOnGadget(self.to_inner(), gadget) }
+    }
+
+    #[inline]
+    pub fn revision(&self) -> i32 {
+        unsafe { qffi_QMetaProperty_revision(self.to_inner()) }
+    }
+
+    #[inline]
+    pub fn type_name(&self) -> &CStr {
+        unsafe { CStr::from_ptr(qffi_QMetaProperty_typeName(self.to_inner())) }
+    }
+
+    #[inline]
+    pub fn write(&self, object: &mut QObject, value: &QVariant) -> bool {
+        unsafe {
+            qffi_QMetaProperty_write(self.to_inner(), object.to_inner_mut(), value.to_inner())
+        }
+    }
+
+    #[inline]
     pub unsafe fn write_on_gadget(&self, gadget: &mut c_void, value: &QVariant) -> bool {
-        cpp!(unsafe [self as "const QMetaProperty*",
-                     gadget as "void*",
-                     value as "const QVariant*"] -> bool as "bool" {
-            return self->writeOnGadget(gadget, *value);
-        })
+        unsafe { qffi_QMetaProperty_writeOnGadget(self.to_inner(), gadget, value.to_inner()) }
     }
 }
 
-cpp_class!(#[derive(Clone)] pub unsafe struct QMetaMethod as "QMetaMethod");
+#[repr(C)]
+pub struct QMetaMethod(pub(crate) crate::ffi::QMetaMethod);
 
 pub trait QtMetaType {
     fn name() -> &'static CStr;
@@ -287,28 +247,34 @@ struct QGenericArgument {
 }
 
 impl QGenericArgument {
+    #[inline]
     pub fn new<T: QtMetaType>(data: &T) -> Self {
         Self::from_raw(T::name().as_ptr(), data as *const _ as *const c_void)
     }
 
+    #[inline]
     pub fn new_mut<T: QtMetaType>(data: &mut T) -> Self {
         Self::from_raw(T::name().as_ptr(), data as *mut _ as *const c_void)
     }
 
+    #[inline]
     pub unsafe fn new_unchecked<T>(ty: &'static CStr, data: &T) -> Self {
         Self::from_raw(ty.as_ptr(), data as *const _ as *const c_void)
     }
 
+    #[inline]
     pub unsafe fn new_mut_unchecked<T>(ty: &'static CStr, data: &mut T) -> Self {
         Self::from_raw(ty.as_ptr(), data as *mut _ as *const c_void)
     }
 
+    #[inline]
     pub fn from_raw(name: *const c_char, data: *const c_void) -> Self {
         Self { name, data }
     }
 }
 
 impl Default for QGenericArgument {
+    #[inline]
     fn default() -> Self {
         Self::from_raw(ptr::null(), ptr::null())
     }
@@ -324,6 +290,7 @@ pub struct InvokeMethodBuilder<'a> {
 }
 
 impl<'a> InvokeMethodBuilder<'a> {
+    #[inline]
     pub fn new(obj: &'a mut QObject, member: &'a CStr) -> Self {
         Self {
             obj,
@@ -335,6 +302,7 @@ impl<'a> InvokeMethodBuilder<'a> {
         }
     }
 
+    #[inline]
     pub fn arg<T: QtMetaType>(&mut self, t: &T) -> &mut Self {
         assert!(self.arg_len < 10);
         self.args[self.arg_len] = QGenericArgument::new(t);
@@ -342,6 +310,7 @@ impl<'a> InvokeMethodBuilder<'a> {
         self
     }
 
+    #[inline]
     pub fn arg_mut<T: QtMetaType>(&mut self, t: &mut T) -> &mut Self {
         assert!(self.arg_len < 10);
         self.args[self.arg_len] = QGenericArgument::new_mut(t);
@@ -349,6 +318,7 @@ impl<'a> InvokeMethodBuilder<'a> {
         self
     }
 
+    #[inline]
     pub unsafe fn arg_unchecked<T>(&mut self, ty: &'static CStr, data: &T) -> &mut Self {
         assert!(self.arg_len < 10);
         self.args[self.arg_len] = QGenericArgument::new_unchecked(ty, data);
@@ -356,6 +326,7 @@ impl<'a> InvokeMethodBuilder<'a> {
         self
     }
 
+    #[inline]
     pub unsafe fn arg_mut_unchecked<T>(&mut self, ty: &'static CStr, data: &mut T) -> &mut Self {
         assert!(self.arg_len < 10);
         self.args[self.arg_len] = QGenericArgument::new_mut_unchecked(ty, data);
@@ -363,50 +334,44 @@ impl<'a> InvokeMethodBuilder<'a> {
         self
     }
 
+    #[inline]
     pub fn ret<T: QtMetaType>(&mut self, t: &mut T) -> &mut Self {
         self.ret = Some(QGenericArgument::new_mut(t));
         self
     }
 
+    #[inline]
     pub unsafe fn ret_unchecked<T>(&mut self, ty: &'static CStr, t: &mut T) -> &mut Self {
         self.ret = Some(QGenericArgument::new_mut_unchecked(ty, t));
         self
     }
 
+    #[inline]
     pub fn type_(&mut self, type_: impl Into<ConnectionType>) -> &mut Self {
         self.type_ = type_.into();
         self
     }
 
     pub unsafe fn invoke(&mut self) -> bool {
-        let obj = self.obj as *mut QObject;
-        let member = self.member.as_ptr();
-        let args = self.args.as_ptr();
-        let ty: i32 = self.type_.into();
-
         if let Some(ref ret) = self.ret {
-            cpp!([
-                obj as "QObject*",
-                member as "const char *",
-                ty as "qint32",
-                ret as "const QGenericReturnArgument*",
-                args as "const QGenericArgument*"
-            ] -> bool as "bool" {
-                return QMetaObject::invokeMethod(
-                    obj, member, Qt::ConnectionType(ty), *ret, args[0], args[1], args[2], args[3], args[4], args[5],
-                    args[6], args[7], args[8], args[9]);
-            })
+            unsafe {
+                qffi_QMetaObject_invokeMethodAndReturn(
+                    self.obj.to_inner_mut(),
+                    self.member.as_ptr(),
+                    self.type_.into(),
+                    transmute(ret),
+                    transmute(self.args.as_ptr()),
+                )
+            }
         } else {
-            cpp!([
-                obj as "QObject*",
-                member as "const char *",
-                ty as "qint32",
-                args as "const QGenericArgument*"
-            ] -> bool as "bool" {
-                return QMetaObject::invokeMethod(
-                    obj, member, Qt::ConnectionType(ty), args[0], args[1], args[2], args[3], args[4], args[5], args[6],
-                    args[7], args[8], args[9]);
-            })
+            unsafe {
+                qffi_QMetaObject_invokeMethod(
+                    self.obj.to_inner_mut(),
+                    self.member.as_ptr(),
+                    self.type_.into(),
+                    transmute(self.args.as_ptr()),
+                )
+            }
         }
     }
 }

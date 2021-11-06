@@ -17,18 +17,21 @@ fn variant_valid() {
 }
 
 #[test]
-fn variant_from() {
-    // string
+fn variant_from_string() {
     assert_eq!(String::from(&QVariant::from("test")), "test");
     assert_eq!(String::from(QVariant::from("test")), "test");
+}
 
-    // optional string
+#[test]
+fn variant_from_optional_string() {
     let none_string: Option<String> = None;
     assert_eq!(String::from(QVariant::from(Some("test"))), "test");
     assert_eq!(String::from(QVariant::from(none_string.clone())), "");
     assert!(QVariant::from(none_string).is_null());
+}
 
-    // numbers
+#[test]
+fn variant_from_numbers() {
     assert_eq!(u8::try_from(QVariant::from(123u8)).unwrap(), 123u8);
     assert_eq!(i8::try_from(QVariant::from(-123i8)).unwrap(), -123i8);
     assert_eq!(u16::try_from(QVariant::from(123u16)).unwrap(), 123u16);

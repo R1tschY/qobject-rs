@@ -7,7 +7,9 @@ use crate::core::QObjectRef;
 use crate::ffi::{qffi_QCoreApplication_exec, qffi_QCoreApplication_init};
 use crate::QBox;
 
+#[repr(C)]
 pub struct QCoreApplication(pub(crate) crate::ffi::QCoreApplication);
+impl_ffi_trait!(QCoreApplication);
 impl_qobject_ref!(QCoreApplication);
 
 impl QCoreApplication {

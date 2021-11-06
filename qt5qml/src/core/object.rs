@@ -1,17 +1,29 @@
 use crate::core::thread::QThread;
-use crate::core::{Connection, QMetaObject};
+use crate::core::{QMetaObject, QMetaObjectConnection};
+use crate::ffi::{
+    init_ffi_struct, qffi_QObject_connect, qffi_QObject_destroy, qffi_QObject_disconnect2,
+    qffi_QObject_disconnect3, qffi_QObject_disconnectConnection, qffi_QObject_inherits,
+    qffi_QObject_init, qffi_QObject_metaObject, qffi_QObject_moveToThread, QffiWrapper,
+};
 use crate::QBox;
 use std::borrow::Cow;
 use std::ffi::{CStr, CString, NulError};
 use std::os::raw::c_char;
 use std::ptr;
 
-cpp! {{
-    #include <QObject>
-}}
+#[repr(C)]
+pub struct QObject(pub(crate) crate::ffi::QObject);
+impl_ffi_trait!(QObject);
 
-pub use crate::ffi::QObject;
-impl_qobject_ref!(QObject);
+impl QObjectRef for QObject {
+    fn as_qobject_mut(&mut self) -> &mut QObject {
+        self
+    }
+
+    fn as_qobject(&self) -> &QObject {
+        self
+    }
+}
 
 /// See enum Qt::ConnectionType
 #[derive(Copy, Clone, Eq, PartialEq)]
@@ -37,65 +49,20 @@ pub struct Slot(Cow<'static, CStr>);
 
 impl QObject {
     pub fn new() -> QBox<QObject> {
-        unsafe {
-            QBox::from_raw(cpp!(unsafe [] -> *mut QObject as "QObject*" {
-                return new QObject(nullptr);
-            }))
-        }
+        unsafe { QBox::from_raw(std::mem::transmute(qffi_QObject_init(ptr::null_mut()))) }
     }
 
     pub fn new_with_parent(parent: &mut QObject) -> *mut QObject {
-        cpp!(unsafe [parent as "QObject*"] -> *mut QObject as "QObject*" {
-            return new QObject(parent);
-        })
+        unsafe { std::mem::transmute(crate::ffi::qffi_QObject_init(parent.to_inner_mut())) }
     }
 
-    pub unsafe fn inherits(obj: &QObject, class_name: *const c_char) -> bool {
-        cpp!(unsafe [obj as "const QObject*", class_name as "const char*"] -> bool as "bool" {
-            return obj->inherits(class_name);
-        })
-    }
-
-    pub unsafe fn delete(obj: &mut QObject) {
-        cpp!(unsafe [obj as "QObject*"] {
-            delete obj;
-        })
-    }
-
-    pub unsafe fn delete_later(obj: &mut QObject) {
-        cpp!(unsafe [obj as "QObject*"] {
-            obj->deleteLater();
-        })
-    }
-
-    unsafe fn meta_object(obj: &QObject) -> &'static QMetaObject {
-        &*cpp!(unsafe [obj as "const QObject*"] -> *const QMetaObject as "const QMetaObject*" {
-            return obj->metaObject();
-        })
-    }
-
-    fn move_to_thread(obj: &mut QObject, target_thread: *mut QThread) {
-        cpp!(unsafe [obj as "QObject*", target_thread as  "QThread*"] {
-            obj->moveToThread(target_thread);
-        });
-    }
-
-    fn connect_internal(
-        sender: &QObject,
-        signal: &CStr,
-        receiver: &QObject,
-        method: &CStr,
-        type_: i32,
-    ) -> Connection {
-        let signal = signal.as_ptr();
-        let method = method.as_ptr();
-        cpp!(unsafe [sender as "const QObject*",
-                     signal as "const char*",
-                     receiver as "const QObject*",
-                     method as "const char*",
-                     type_ as "Qt::ConnectionType"] -> Connection as "QMetaObject::Connection" {
-            return QObject::connect(sender, signal, receiver, method, type_);
-        })
+    fn move_to_thread(&mut self, mut target_thread: *mut QThread) {
+        unsafe {
+            std::mem::transmute(qffi_QObject_moveToThread(
+                self.to_inner_mut(),
+                std::mem::transmute(target_thread),
+            ))
+        }
     }
 
     pub fn connect<R: Into<Signal>, S: Into<Slot>, T: Into<ConnectionType>>(
@@ -104,9 +71,8 @@ impl QObject {
         receiver: &QObject,
         method: S,
         type_: T,
-    ) -> Connection {
-        Self::connect_internal(
-            sender,
+    ) -> QMetaObjectConnection {
+        sender.connect_internal(
             signal.into().as_cstr(),
             receiver,
             method.into().as_cstr(),
@@ -114,43 +80,43 @@ impl QObject {
         )
     }
 
-    fn disconnect_internal(
-        sender: &QObject,
+    fn connect_internal(
+        &self,
         signal: &CStr,
         receiver: &QObject,
         method: &CStr,
-    ) -> bool {
-        let signal = signal.as_ptr();
-        let method = method.as_ptr();
-        cpp!(unsafe [sender as "const QObject*",
-                     signal as "const char*",
-                     receiver as "const QObject*",
-                     method as "const char*"] -> bool as "bool" {
-            return QObject::disconnect(sender, signal, receiver, method);
-        })
+        type_: i32,
+    ) -> QMetaObjectConnection {
+        QMetaObjectConnection(init_ffi_struct(|dest| unsafe {
+            qffi_QObject_connect(
+                self.to_inner(),
+                signal.as_ptr(),
+                receiver.to_inner(),
+                method.as_ptr(),
+                type_,
+                dest,
+            )
+        }))
     }
 
-    pub fn disconnect<R: Into<Signal>, S: Into<Slot>>(
-        sender: &QObject,
-        signal: R,
-        receiver: &QObject,
-        method: S,
-    ) -> bool {
-        Self::disconnect_internal(
-            sender,
-            signal.into().as_cstr(),
-            receiver,
-            method.into().as_cstr(),
-        )
+    fn disconnect_internal(&self, signal: &CStr, receiver: &QObject, method: &CStr) -> bool {
+        unsafe {
+            qffi_QObject_disconnect3(
+                self.to_inner(),
+                signal.as_ptr(),
+                receiver.to_inner(),
+                method.as_ptr(),
+            )
+        }
     }
 
     fn disconnect_from_internal(&self, receiver: &QObject, method: Option<&CStr>) -> bool {
         let method = method.map_or(ptr::null(), |p| p.as_ptr());
-        cpp!(unsafe [self as "const QObject*",
-                     receiver as "const QObject*",
-                     method as "const char*"] -> bool as "bool" {
-            return self->disconnect(receiver, method);
-        })
+        unsafe { qffi_QObject_disconnect2(self.to_inner(), receiver.to_inner(), method) }
+    }
+
+    pub fn disconnect(connection: &QMetaObjectConnection) -> bool {
+        unsafe { qffi_QObject_disconnectConnection(connection.to_inner()) }
     }
 
     pub fn object_name_changed_signal() -> Signal {
@@ -252,15 +218,47 @@ pub trait QObjectRef {
     fn as_qobject(&self) -> &QObject;
 
     fn inherits(&self, class_name: &CStr) -> bool {
-        unsafe { QObject::inherits(self.as_qobject(), class_name.as_ptr()) }
+        unsafe { qffi_QObject_inherits(self.as_qobject().to_inner(), class_name.as_ptr()) }
+    }
+
+    unsafe fn delete(&mut self) {
+        unsafe { qffi_QObject_destroy(self.as_qobject_mut().to_inner_mut()) }
     }
 
     unsafe fn delete_later(&mut self) {
-        QObject::delete_later(self.as_qobject_mut())
+        unsafe { qffi_QObject_destroy(self.as_qobject_mut().to_inner_mut()) }
     }
 
     fn meta_object(&self) -> &'static QMetaObject {
-        unsafe { QObject::meta_object(self.as_qobject()) }
+        unsafe { std::mem::transmute(qffi_QObject_metaObject(self.as_qobject().to_inner())) }
+    }
+
+    fn connect<R: Into<Signal>, S: Into<Slot>, T: Into<ConnectionType>>(
+        &self,
+        signal: R,
+        receiver: &QObject,
+        method: S,
+        type_: T,
+    ) -> QMetaObjectConnection {
+        self.as_qobject().connect_internal(
+            signal.into().as_cstr(),
+            receiver,
+            method.into().as_cstr(),
+            type_.into().into(),
+        )
+    }
+
+    fn disconnect<R: Into<Signal>, S: Into<Slot>>(
+        &self,
+        signal: R,
+        receiver: &QObject,
+        method: S,
+    ) -> bool {
+        self.as_qobject().disconnect_internal(
+            signal.into().as_cstr(),
+            receiver,
+            method.into().as_cstr(),
+        )
     }
 
     fn disconnect_from(&self, receiver: &QObject) -> bool {

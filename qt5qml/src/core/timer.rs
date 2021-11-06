@@ -2,10 +2,12 @@ use std::ptr;
 use std::time::Duration;
 
 use crate::core::{QObject, Signal, Slot};
+use crate::ffi::QffiWrapper;
 use crate::QBox;
 
+#[repr(C)]
 pub struct QTimer(pub(crate) crate::ffi::QTimer);
-
+impl_ffi_trait!(QTimer);
 impl_qobject_ref!(QTimer);
 
 #[repr(C)]
@@ -47,7 +49,7 @@ impl QTimer {
 
     #[inline]
     pub fn new_with_parent(parent: &mut QObject) -> *mut QTimer {
-        unsafe { std::mem::transmute(crate::ffi::qffi_QTimer_init(parent)) }
+        unsafe { std::mem::transmute(crate::ffi::qffi_QTimer_init(parent.to_inner_mut())) }
     }
 
     #[inline]

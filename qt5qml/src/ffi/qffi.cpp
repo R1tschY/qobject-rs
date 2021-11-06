@@ -1,5 +1,25 @@
 
 #include "qffi.hpp"
+#include <type_traits>
+
+// Helpers
+
+template<typename T, typename ...Args>
+static void qffi_call_ctor(T* ptr, Args&&... args) {
+  ::new(ptr) T(std::forward<Args>(args)...);
+}
+
+template<typename T>
+static void qffi_call_default_ctor(T* ptr) {
+  ::new(ptr) T();
+}
+
+template<typename T>
+static void qffi_call_dtor(T* ptr) {
+  ptr->~T();
+}
+
+// Helpers End
 
 extern "C" {
 
@@ -7,17 +27,14 @@ extern "C" {
 
 // QString
 
-static_assert(alignof(QString) == alignof(_QString), "Alignment of QString incompatible");
-static_assert(sizeof(QString) == sizeof(_QString), "Size of QString incompatible");
+static_assert(alignof(QString) == alignof(Qffi_QString), "Alignment of QString incompatible");
+static_assert(sizeof(QString) == sizeof(Qffi_QString), "Size of QString incompatible");
 
 
 void qffi_QString_init(QString* self) {
-    new ((QString*)self) QString();
+    ::qffi_call_default_ctor((QString*)self);
 }
 
-void qffi_QString_destroy(QString* self) {
-    ((QString*)self)->~QString();
-}
 
 void qffi_QString_clone(QString const* self, QString* new_) {
     new ((QString*)new_) QString(*(QString const*)self);
@@ -38,24 +55,24 @@ bool qffi_QString_isNull(QString const* _self) {
     return self->isNull();
 }
 
-void qffi_QString_fromUtf8(const char* data, int size, QString* dest) {
+void qffi_QString_fromUtf8(const char* data, int size, QString* result) {
     
-    new (dest) QString(QString::fromUtf8(data, size));
+    qffi_call_ctor(result, QString::fromUtf8(data, size));
 }
 
-void qffi_QString_fromUtf16(const unsigned short* data, int size, QString* dest) {
+void qffi_QString_fromUtf16(const unsigned short* data, int size, QString* result) {
     
-    new (dest) QString(QString::fromUtf16(data, size));
+    qffi_call_ctor(result, QString::fromUtf16(data, size));
 }
 
-void qffi_QString_fromUtf16Unchecked(const unsigned short* data, int size, QString* dest) {
+void qffi_QString_fromUtf16Unchecked(const unsigned short* data, int size, QString* result) {
     
-    new (dest) QString((const QChar*)(data), size);
+    qffi_call_ctor(result, (const QChar*)(data), size);
 }
 
-void qffi_QString_toUtf8(QString const* _self, QByteArray* dest) {
+void qffi_QString_toUtf8(QString const* _self, QByteArray* result) {
     auto* self = (QString const*) _self;
-    new (dest) QByteArray(self->toUtf8());
+    qffi_call_ctor(result, self->toUtf8());
 }
 
 const unsigned short* qffi_QString_utf16(QString const* _self, int* len) {
@@ -72,17 +89,14 @@ int qffi_QString_compare(QString const* _self, const QString* other) {
 
 // QByteArray
 
-static_assert(alignof(QByteArray) == alignof(_QByteArray), "Alignment of QByteArray incompatible");
-static_assert(sizeof(QByteArray) == sizeof(_QByteArray), "Size of QByteArray incompatible");
+static_assert(alignof(QByteArray) == alignof(Qffi_QByteArray), "Alignment of QByteArray incompatible");
+static_assert(sizeof(QByteArray) == sizeof(Qffi_QByteArray), "Size of QByteArray incompatible");
 
 
 void qffi_QByteArray_init(QByteArray* self) {
-    new ((QByteArray*)self) QByteArray();
+    ::qffi_call_default_ctor((QByteArray*)self);
 }
 
-void qffi_QByteArray_destroy(QByteArray* self) {
-    ((QByteArray*)self)->~QByteArray();
-}
 
 void qffi_QByteArray_clone(QByteArray const* self, QByteArray* new_) {
     new ((QByteArray*)new_) QByteArray(*(QByteArray const*)self);
@@ -93,9 +107,9 @@ bool qffi_QByteArray_equals(QByteArray const* self, QByteArray const* other) {
 }
 
 
-void qffi_QByteArray_fromData(const char* data, int len, QByteArray* dest) {
+void qffi_QByteArray_fromData(const char* data, int len, QByteArray* result) {
     
-    new (dest) QByteArray(data, len);
+    qffi_call_ctor(result, data, len);
 }
 
 const char* qffi_QByteArray_data(QByteArray const* _self, int* len) {
@@ -112,17 +126,14 @@ int qffi_QByteArray_compare(QByteArray const* _self, const QByteArray* other) {
 
 // QUrl
 
-static_assert(alignof(QUrl) == alignof(_QUrl), "Alignment of QUrl incompatible");
-static_assert(sizeof(QUrl) == sizeof(_QUrl), "Size of QUrl incompatible");
+static_assert(alignof(QUrl) == alignof(Qffi_QUrl), "Alignment of QUrl incompatible");
+static_assert(sizeof(QUrl) == sizeof(Qffi_QUrl), "Size of QUrl incompatible");
 
 
 void qffi_QUrl_init(QUrl* self) {
-    new ((QUrl*)self) QUrl();
+    ::qffi_call_default_ctor((QUrl*)self);
 }
 
-void qffi_QUrl_destroy(QUrl* self) {
-    ((QUrl*)self)->~QUrl();
-}
 
 void qffi_QUrl_clone(QUrl const* self, QUrl* new_) {
     new ((QUrl*)new_) QUrl(*(QUrl const*)self);
@@ -138,14 +149,14 @@ signed char qffi_QUrl_ord(QUrl const* _self, QUrl const* _other) {
     return int(*other < *self) - int(*self < *other);
 }
 
-void qffi_QUrl_fromString(const QString* value, QUrl* out) {
+void qffi_QUrl_fromString(const QString* value, QUrl* result) {
     
-    new (out) QUrl(*value);
+    qffi_call_ctor(result, *value);
 }
 
-void qffi_QUrl_fromLocalFile(const QString* value, QUrl* out) {
+void qffi_QUrl_fromLocalFile(const QString* value, QUrl* result) {
     
-    new (out) QUrl(QUrl::fromLocalFile(*value));
+    qffi_call_ctor(result, QUrl::fromLocalFile(*value));
 }
 
 void qffi_QUrl_debug(QUrl const* _self, QString* out) {
@@ -156,13 +167,456 @@ void qffi_QUrl_debug(QUrl const* _self, QString* out) {
 
 
 // QObject
-
-void qffi_QObject_destroy(QObject* self) {
-    delete (QObject*)self;
+QObject* qffi_QObject_init(QObject* parent) {
+    return (QObject*)new QObject(parent);
 }
 
 
 
+
+
+bool qffi_QObject_inherits(QObject const* _self, const char* class_name) {
+    auto* self = (QObject const*) _self;
+    return self->inherits(class_name);
+}
+
+void qffi_QObject_deleteLater(QObject * _self) {
+    auto* self = (QObject *) _self;
+    self->deleteLater();
+}
+
+const QMetaObject* qffi_QObject_metaObject(QObject const* _self) {
+    auto* self = (QObject const*) _self;
+    return self->metaObject();
+}
+
+void qffi_QObject_moveToThread(QObject * _self, QThread* targetThread) {
+    auto* self = (QObject *) _self;
+    self->moveToThread(targetThread);
+}
+
+void qffi_QObject_connect(QObject const* _self, const char* signal, const QObject* receiver, const char* method, int type_, QMetaObjectConnection* result) {
+    auto* self = (QObject const*) _self;
+    qffi_call_ctor((QMetaObject::Connection*)result,
+      self->connect(self, signal, receiver, method, Qt::ConnectionType(type_)));
+}
+
+bool qffi_QObject_disconnectConnection(const QMetaObjectConnection* connection) {
+    
+    return QObject::disconnect(*(const QMetaObject::Connection*)connection);
+}
+
+bool qffi_QObject_disconnect2(QObject const* _self, const QObject* receiver, const char* method) {
+    auto* self = (QObject const*) _self;
+    return self->disconnect(receiver, method);
+}
+
+bool qffi_QObject_disconnect3(QObject const* _self, const char* signal, const QObject* receiver, const char* method) {
+    auto* self = (QObject const*) _self;
+    return self->disconnect(signal, receiver, method);
+}
+
+void qffi_QObject_destroy(QObject * _self) {
+    auto* self = (QObject *) _self;
+    qffi_call_dtor(self);
+}
+
+
+// QGenericArgument
+
+
+
+
+
+
+// QGenericReturnArgument
+
+
+
+
+
+
+// QMetaObject
+
+
+
+
+
+const char* qffi_QMetaObject_className(QMetaObject const* _self) {
+    auto* self = (QMetaObject const*) _self;
+    return self->className();
+}
+
+int qffi_QMetaObject_propertyCount(QMetaObject const* _self) {
+    auto* self = (QMetaObject const*) _self;
+    return self->propertyCount();
+}
+
+int qffi_QMetaObject_propertyOffset(QMetaObject const* _self) {
+    auto* self = (QMetaObject const*) _self;
+    return self->propertyOffset();
+}
+
+QMetaProperty qffi_QMetaObject_property(QMetaObject const* _self, int index) {
+    auto* self = (QMetaObject const*) _self;
+    return self->property(index);
+}
+
+bool qffi_QMetaObject_invokeMethod(QObject* obj, const char* member, int ty, const QGenericArgument* args) {
+    
+    return QMetaObject::invokeMethod(
+      obj, member, Qt::ConnectionType(ty), args[0], args[1], args[2], args[3], args[4], args[5],
+      args[6], args[7], args[8], args[9]);
+}
+
+bool qffi_QMetaObject_invokeMethodAndReturn(QObject* obj, const char* member, int ty, const QGenericReturnArgument* ret, const QGenericArgument* args) {
+    
+    return QMetaObject::invokeMethod(
+      obj, member, Qt::ConnectionType(ty), *ret, args[0], args[1], args[2], args[3], args[4], args[5],
+      args[6], args[7], args[8], args[9]);
+}
+
+
+// QMetaMethod
+
+static_assert(alignof(QMetaMethod) == alignof(Qffi_QMetaMethod), "Alignment of QMetaMethod incompatible");
+static_assert(sizeof(QMetaMethod) == sizeof(Qffi_QMetaMethod), "Size of QMetaMethod incompatible");static_assert(std::is_trivially_destructible<QMetaMethod>::value, "QMetaMethod is not trivially destructible");
+
+
+
+void qffi_QMetaMethod_init(QMetaMethod* self) {
+    ::qffi_call_default_ctor((QMetaMethod*)self);
+}
+
+void qffi_QMetaMethod_destroy(QMetaMethod* self) {
+    ::qffi_call_dtor((QMetaMethod*)self);
+}
+
+
+bool qffi_QMetaMethod_equals(QMetaMethod const* self, QMetaMethod const* other) {
+    return *((QMetaMethod const*)self) == *((QMetaMethod const*)other);
+}
+
+
+
+// QMetaEnum
+
+static_assert(alignof(QMetaEnum) == alignof(Qffi_QMetaEnum), "Alignment of QMetaEnum incompatible");
+static_assert(sizeof(QMetaEnum) == sizeof(Qffi_QMetaEnum), "Size of QMetaEnum incompatible");
+
+
+void qffi_QMetaEnum_init(QMetaEnum* self) {
+    ::qffi_call_default_ctor((QMetaEnum*)self);
+}
+
+
+
+
+
+
+// QMetaProperty
+
+static_assert(alignof(QMetaProperty) == alignof(Qffi_QMetaProperty), "Alignment of QMetaProperty incompatible");
+static_assert(sizeof(QMetaProperty) == sizeof(Qffi_QMetaProperty), "Size of QMetaProperty incompatible");static_assert(std::is_trivially_destructible<QMetaProperty>::value, "QMetaProperty is not trivially destructible");
+
+
+
+void qffi_QMetaProperty_init(QMetaProperty* self) {
+    ::qffi_call_default_ctor((QMetaProperty*)self);
+}
+
+void qffi_QMetaProperty_destroy(QMetaProperty* self) {
+    ::qffi_call_dtor((QMetaProperty*)self);
+}
+
+
+
+
+bool qffi_QMetaProperty_hasNotifySignal(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->hasNotifySignal();
+}
+
+bool qffi_QMetaProperty_isConstant(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->isConstant();
+}
+
+bool qffi_QMetaProperty_isDesignable(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->isDesignable();
+}
+
+bool qffi_QMetaProperty_isEnumType(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->isEnumType();
+}
+
+bool qffi_QMetaProperty_isFinal(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->isFinal();
+}
+
+bool qffi_QMetaProperty_isFlagType(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->isFlagType();
+}
+
+bool qffi_QMetaProperty_isReadable(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->isReadable();
+}
+
+bool qffi_QMetaProperty_isResettable(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->isResettable();
+}
+
+bool qffi_QMetaProperty_isScriptable(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->isScriptable();
+}
+
+bool qffi_QMetaProperty_isStored(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->isStored();
+}
+
+bool qffi_QMetaProperty_isUser(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->isUser();
+}
+
+bool qffi_QMetaProperty_isWritable(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->isWritable();
+}
+
+const char* qffi_QMetaProperty_name(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->name();
+}
+
+QMetaMethod qffi_QMetaProperty_notifySignal(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->notifySignal();
+}
+
+int qffi_QMetaProperty_notifySignalIndex(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->notifySignalIndex();
+}
+
+int qffi_QMetaProperty_propertyIndex(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->propertyIndex();
+}
+
+void qffi_QMetaProperty_read(QMetaProperty const* _self, const QObject* object, QVariant* result) {
+    auto* self = (QMetaProperty const*) _self;
+    qffi_call_ctor(result, self->read(object));
+}
+
+void qffi_QMetaProperty_readOnGadget(QMetaProperty const* _self, const void* gadget, QVariant* result) {
+    auto* self = (QMetaProperty const*) _self;
+    qffi_call_ctor(result, self->readOnGadget(gadget));
+}
+
+bool qffi_QMetaProperty_reset(QMetaProperty const* _self, QObject* object) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->reset(object);
+}
+
+bool qffi_QMetaProperty_resetOnGadget(QMetaProperty const* _self, void* gadget) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->resetOnGadget(gadget);
+}
+
+int qffi_QMetaProperty_revision(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->revision();
+}
+
+const char* qffi_QMetaProperty_typeName(QMetaProperty const* _self) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->typeName();
+}
+
+bool qffi_QMetaProperty_write(QMetaProperty const* _self, QObject* object, const QVariant* value) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->write(object, *value);
+}
+
+bool qffi_QMetaProperty_writeOnGadget(QMetaProperty const* _self, void* gadget, const QVariant* value) {
+    auto* self = (QMetaProperty const*) _self;
+    return self->writeOnGadget(gadget, *value);
+}
+
+
+// QMetaObjectConnection
+
+static_assert(alignof(QMetaObject::Connection) == alignof(QMetaObjectConnection), "Alignment of QMetaObject::Connection incompatible");
+static_assert(sizeof(QMetaObject::Connection) == sizeof(QMetaObjectConnection), "Size of QMetaObject::Connection incompatible");
+
+
+void qffi_QMetaObjectConnection_init(QMetaObjectConnection* self) {
+    ::qffi_call_default_ctor((QMetaObject::Connection*)self);
+}
+
+
+void qffi_QMetaObjectConnection_clone(QMetaObjectConnection const* self, QMetaObjectConnection* new_) {
+    new ((QMetaObject::Connection*)new_) QMetaObject::Connection(*(QMetaObject::Connection const*)self);
+}
+
+
+
+bool qffi_QMetaObjectConnection_isValid(QMetaObjectConnection const* _self) {
+    auto* self = (QMetaObject::Connection const*) _self;
+    return *self;
+}
+
+
+// QVariant
+
+static_assert(alignof(QVariant) == alignof(Qffi_QVariant), "Alignment of QVariant incompatible");
+static_assert(sizeof(QVariant) == sizeof(Qffi_QVariant), "Size of QVariant incompatible");
+
+
+void qffi_QVariant_init(QVariant* self) {
+    ::qffi_call_default_ctor((QVariant*)self);
+}
+
+
+void qffi_QVariant_clone(QVariant const* self, QVariant* new_) {
+    new ((QVariant*)new_) QVariant(*(QVariant const*)self);
+}
+
+bool qffi_QVariant_equals(QVariant const* self, QVariant const* other) {
+    return *((QVariant const*)self) == *((QVariant const*)other);
+}
+
+signed char qffi_QVariant_ord(QVariant const* _self, QVariant const* _other) {
+    auto* self = (QVariant const*) _self;
+    auto* other = (QVariant const*) _other;
+    return int(*other < *self) - int(*self < *other);
+}
+
+bool qffi_QVariant_isValid(QVariant const* _self) {
+    auto* self = (QVariant const*) _self;
+    return self->isValid();
+}
+
+bool qffi_QVariant_isNull(QVariant const* _self) {
+    auto* self = (QVariant const*) _self;
+    return self->isNull();
+}
+
+void qffi_QVariant_from_int(int value, QVariant* result) {
+    
+    qffi_call_ctor(result, value);
+}
+
+void qffi_QVariant_from_uint(unsigned int value, QVariant* result) {
+    
+    qffi_call_ctor(result, value);
+}
+
+void qffi_QVariant_from_int64(long long value, QVariant* result) {
+    
+    qffi_call_ctor(result, value);
+}
+
+void qffi_QVariant_from_uint64(unsigned long long value, QVariant* result) {
+    
+    qffi_call_ctor(result, value);
+}
+
+void qffi_QVariant_from_bool(bool value, QVariant* result) {
+    
+    qffi_call_ctor(result, value);
+}
+
+void qffi_QVariant_from_float(float value, QVariant* result) {
+    
+    qffi_call_ctor(result, value);
+}
+
+void qffi_QVariant_from_double(double value, QVariant* result) {
+    
+    qffi_call_ctor(result, value);
+}
+
+void qffi_QVariant_fromByteArray(const QByteArray* value, QVariant* result) {
+    
+    qffi_call_ctor(result, *value);
+}
+
+void qffi_QVariant_fromString(const QString* value, QVariant* result) {
+    
+    qffi_call_ctor(result, *value);
+}
+
+void qffi_QVariant_fromUtf8(const char* data, int size, QVariant* result) {
+    
+    qffi_call_ctor(result, QString::fromUtf8(data, size));
+}
+
+int qffi_QVariant_toInt(QVariant const* _self, bool* ok) {
+    auto* self = (QVariant const*) _self;
+    return self->toInt(ok);
+}
+
+unsigned int qffi_QVariant_toUInt(QVariant const* _self, bool* ok) {
+    auto* self = (QVariant const*) _self;
+    return self->toUInt(ok);
+}
+
+long long qffi_QVariant_toLongLong(QVariant const* _self, bool* ok) {
+    auto* self = (QVariant const*) _self;
+    return self->toLongLong(ok);
+}
+
+unsigned long long qffi_QVariant_toULongLong(QVariant const* _self, bool* ok) {
+    auto* self = (QVariant const*) _self;
+    return self->toULongLong(ok);
+}
+
+float qffi_QVariant_toFloat(QVariant const* _self, bool* ok) {
+    auto* self = (QVariant const*) _self;
+    return self->toFloat(ok);
+}
+
+double qffi_QVariant_toDouble(QVariant const* _self, bool* ok) {
+    auto* self = (QVariant const*) _self;
+    return self->toDouble(ok);
+}
+
+bool qffi_QVariant_toBool(QVariant const* _self) {
+    auto* self = (QVariant const*) _self;
+    return self->toBool();
+}
+
+void qffi_QVariant_toByteArray(QVariant const* _self, QByteArray* result) {
+    auto* self = (QVariant const*) _self;
+    qffi_call_ctor(result, self->toByteArray());
+}
+
+void qffi_QVariant_toString(QVariant const* _self, QString* result) {
+    auto* self = (QVariant const*) _self;
+    qffi_call_ctor(result, self->toString());
+}
+
+void qffi_QVariant_toUtf8(QVariant const* _self, QByteArray* result) {
+    auto* self = (QVariant const*) _self;
+    qffi_call_ctor(result, self->toString().toUtf8());
+}
+
+void qffi_QVariant_debug(QVariant const* _self, QByteArray* result) {
+    auto* self = (QVariant const*) _self;
+    QString tmp;
+    QDebug(&tmp).nospace() << *self;
+    qffi_call_ctor(result, tmp.toUtf8());
+}
 
 
 // QTimer
@@ -266,17 +720,14 @@ QGuiApplication* qffi_QGuiApplication_init(int* argc, char const** argv) {
 
 // QHashIntQByteArray
 
-static_assert(alignof(QHash<int, QByteArray>) == alignof(_QHashIntQByteArray), "Alignment of QHash<int, QByteArray> incompatible");
-static_assert(sizeof(QHash<int, QByteArray>) == sizeof(_QHashIntQByteArray), "Size of QHash<int, QByteArray> incompatible");
+static_assert(alignof(QHash<int, QByteArray>) == alignof(QHashIntQByteArray), "Alignment of QHash<int, QByteArray> incompatible");
+static_assert(sizeof(QHash<int, QByteArray>) == sizeof(QHashIntQByteArray), "Size of QHash<int, QByteArray> incompatible");
 
 
 void qffi_QHashIntQByteArray_init(QHashIntQByteArray* self) {
-    new ((QHash<int, QByteArray>*)self) QHash<int, QByteArray>();
+    ::qffi_call_default_ctor((QHash<int, QByteArray>*)self);
 }
 
-void qffi_QHashIntQByteArray_destroy(QHashIntQByteArray* self) {
-    ((QHash<int, QByteArray>*)self)->~QHash<int, QByteArray>();
-}
 
 void qffi_QHashIntQByteArray_clone(QHashIntQByteArray const* self, QHashIntQByteArray* new_) {
     new ((QHash<int, QByteArray>*)new_) QHash<int, QByteArray>(*(QHash<int, QByteArray> const*)self);

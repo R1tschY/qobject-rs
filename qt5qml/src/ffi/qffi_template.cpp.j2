@@ -1,5 +1,25 @@
 
 #include "qffi.hpp"
+#include <type_traits>
+
+// Helpers
+
+template<typename T, typename ...Args>
+static void qffi_call_ctor(T* ptr, Args&&... args) {
+  ::new(ptr) T(std::forward<Args>(args)...);
+}
+
+template<typename T>
+static void qffi_call_default_ctor(T* ptr) {
+  ::new(ptr) T();
+}
+
+template<typename T>
+static void qffi_call_dtor(T* ptr) {
+  ptr->~T();
+}
+
+// Helpers End
 
 extern "C" {
 
@@ -33,20 +53,39 @@ void qffi_{{ name }}_destroy({{ name }}* self) {
 
 {%- else -%}{#- not movable #}
 
-static_assert(alignof({{ cpp_name }}) == alignof(_{{ name }}), "Alignment of {{ cpp_name }} incompatible");
-static_assert(sizeof({{ cpp_name }}) == sizeof(_{{ name }}), "Size of {{ cpp_name }} incompatible");
+{% if cls.overwrite_name -%}
+{%- set cls_name = name -%}
+{%- else -%}
+{%- set cls_name = 'Qffi_' + name -%}
+{% endif -%}
+
+static_assert(alignof({{ cpp_name }}) == alignof({{ cls_name }}), "Alignment of {{ cpp_name }} incompatible");
+static_assert(sizeof({{ cpp_name }}) == sizeof({{ cls_name }}), "Size of {{ cpp_name }} incompatible");
+
+{%- if cls.dtor is sameas false or cls.dtor == 'trivial' -%}
+static_assert(std::is_trivially_destructible<{{ cpp_name }}>::value, "{{ cpp_name }} is not trivially destructible");
+{% endif -%}
+{%- if cls.default_ctor == 'trivial' -%}
+static_assert(std::is_trivially_default_constructible<{{ cpp_name }}>::value, "{{ cpp_name }} is not trivially default constructible");
+{% endif %}
+{%- if cls.copy_ctor == 'trivial' -%}
+static_assert(std::is_trivially_copy_constructible<{{ cpp_name }}>::value, "{{ cpp_name }} is not trivially copy constructible");
+{% endif %}
+{%- if cls.copy_assign == 'trivial' -%}
+static_assert(std::is_trivially_copy_assignable<{{ cpp_name }}>::value, "{{ cpp_name }} is not trivially copy assignable");
+{% endif %}
 
 {# CTOR #}
 {% if cls.default_ctor -%}
 void qffi_{{ name }}_init({{ name }}* self) {
-    new (({{ cpp_name }}*)self) {{ cpp_name }}();
+    ::qffi_call_default_ctor(({{ cpp_name }}*)self);
 }
 {% endif %}
 
 {#- DTOR #}
 {% if cls.generate_dtor -%}
 void qffi_{{ name }}_destroy({{ name }}* self) {
-    (({{ cpp_name }}*)self)->~{{ cpp_name }}();
+    ::qffi_call_dtor(({{ cpp_name }}*)self);
 }
 {% endif %}
 

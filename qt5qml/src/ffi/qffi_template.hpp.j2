@@ -1,33 +1,37 @@
-
-{% for name, cls in classes.items() -%}
-{% if cls.movable -%}
-class _{{ name }} {
-    void* _1;
-};
-{% endif -%}
-{% endfor %}
+#ifndef BINDGEN
+{%- for name, cls in classes.items() %}
+    #include <{{ cls.overwrite_include or name }}>
+{%- endfor -%}
+{%- for include in includes %}
+    #include <{{ include }}>
+{%- endfor %}
+#endif
 
 #ifdef BINDGEN
-{%- for name, cls in classes.items() %}
-    {% if not cls.movable -%}
-    class {{ name }};
-    {%- else -%}
-    typedef _{{ name }} {{ name }};
-    {%- endif -%}
-{%- endfor %}
+#define QFFI_CLASSNAME(cls) cls
 #else
-{%- for name, cls in classes.items() %}
-    {{ '#include' }} <{{ cls.overwrite_include or name }}>
-{%- endfor -%}
-{% for name, cls in classes.items() -%}
-    {%- if cls.overwrite_name %}
-    class {{ name }};
-    {% endif -%}
-{% endfor -%}
-{% for include in includes -%}
-    {{ '#include' }} <{{ include }}>
-{% endfor -%}
+#define QFFI_CLASSNAME(cls) Qffi_ ## cls
 #endif
+
+{% for name, cls in classes.items() -%}
+{%- if cls.overwrite_name -%}
+{%- set cls_name = name -%}
+{%- else -%}
+{%- set cls_name = 'QFFI_CLASSNAME(' + name + ')' -%}
+{% endif -%}
+
+{%- if cls.layout -%}
+class {{ cls_name }} {
+    {%- for name, ty in cls.layout.items() %}
+    {{ ty }} {{ name }};
+    {%- endfor %}
+};
+{% else -%}
+class QFFI_CLASSNAME({{ name }});
+{% endif %}
+{% endfor -%}
+
+#undef QFFI_CLASSNAME
 
 extern "C" {
 
