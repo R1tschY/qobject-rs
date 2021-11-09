@@ -4,7 +4,7 @@ use qt5qml::core::{QStringList, ToQString};
 fn check_push() {
     let mut list = QStringList::new();
 
-    list.push("test".to_qstring());
+    list.push(&"test".to_qstring());
 
     assert_eq!(1, list.len());
     assert_eq!("test".to_qstring(), list.as_slice()[0]);

@@ -6,13 +6,18 @@ from enum import Enum
 from pathlib import Path
 from typing import List, Dict, Optional, Union, Tuple
 
-from jinja2 import Environment, FileSystemLoader
 import yaml
+from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel, Field
 
 
 class MethodKind(str, Enum):
     Trivial = "trivial"
+
+
+class QList(BaseModel):
+    cpp: str
+    rs: str
 
 
 class Method(BaseModel):
@@ -49,8 +54,10 @@ class Class(BaseModel):
 
 
 class BindgenConfig(BaseModel):
+    prelude: Optional[str]
     classes: Dict[str, Class]
     includes: List[str] = Field(default_factory=list)
+    qlists: Dict[str, QList] = Field(default_factory=dict)
 
 
 class Check:
@@ -105,8 +112,64 @@ class ReturnNonTrivialClass(Check):
                     name, method, f"C API does not allow to return non-trivially C++ type {method.return_}")
 
 
+def handle_qlist(name: str, ty: QList):
+    return {
+        "overwrite-include": "QList",
+        "default-ctor": "true",
+        "copy-ctor": "true",
+        "copy-assign": "true",
+        "movable": "true",
+        "eq": "true",
+
+        "layout": dict(__d="void*"),
+
+        "methods": {
+            "size": {
+                "const": True,
+                "return": "int",
+                "body": "return self->size();"
+            },
+            "asSlice": {
+                "const": True,
+                "params": {
+                    "size": "int*"
+                },
+                "return": f"{ty.cpp} const*",
+                "body": "*size = self->size(); if (size == 0) { return nullptr; } else { return & self->front(); }"
+            },
+            "append": {
+                "params": {
+                    "item": f"{ty.cpp} const*"
+                },
+                "body": "self->append(*item);"
+            },
+            "appendList": {
+                "params": {
+                    "item": f"QList<{ty.cpp}> const*"
+                },
+                "body": "self->append(*item);"
+            },
+            "appendSlice": {
+                "params": {
+                    "items": f"{ty.cpp} const*",
+                    "size": "int"
+                },
+                "body": "self->reserve(self->size() + size); "
+                        "for (int i = 0; i < size; ++i) { self->push_back(items[i]); }"
+            },
+            "reserveAdditional": {
+                "params": {
+                    "additional": "int"
+                },
+                "body": "self->reserve(self->size() + additional);"
+            },
+        }
+    }
+
+
 def generate():
     root = Path(__file__).parent
+    core_root = Path(__file__).parent.parent / "core"
 
     env = Environment(
         loader=FileSystemLoader(str(root)),
@@ -115,10 +178,14 @@ def generate():
     qffi_template_hpp = env.get_template("qffi_template.hpp.j2")
     qffi_template_cpp = env.get_template("qffi_template.cpp.j2")
     qffi_template_rs = env.get_template("qffi_impl_template.rs.j2")
+    qlists_template_rs = env.get_template("list_template.rs.j2")
     bindgen_template = env.get_template("bindgen.yml")
 
     bindgen = bindgen_template.render({})
     config = BindgenConfig(**yaml.safe_load(bindgen))
+
+    for name, ty in config.qlists.items():
+        config.classes[name] = Class(**handle_qlist(name, ty))
 
     check_config([ReturnNonTrivialClass()], config)
 
@@ -127,6 +194,7 @@ def generate():
     (root / "qffi.hpp").write_text(qffi_template_hpp.render(config))
     (root / "qffi.cpp").write_text(qffi_template_cpp.render(config))
     (root / "qffi_impl.rs").write_text(qffi_template_rs.render(config))
+    (core_root / "list.rs").write_text(qlists_template_rs.render(config))
 
     with (root / "qffi.rs").open("w") as fp:
         subprocess.run(

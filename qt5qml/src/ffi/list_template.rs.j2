@@ -1,0 +1,96 @@
+use std::mem::transmute;
+use std::iter::FromIterator;
+use std::os::raw::c_int;
+
+use crate::ffi::QffiWrapper;
+
+{% for name, ty in qlists.items() -%}
+#[repr(C)]
+#[derive(Clone, Default, Eq, PartialEq)]
+pub struct {{ name }}(crate::ffi::{{ name }});
+impl_ffi_trait!({{ name }});
+
+impl {{ name }} {
+    #[inline]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    #[inline]
+    pub fn len(&self) -> i32 {
+        unsafe { crate::ffi::qffi_{{ name }}_size(self.to_inner()) }
+    }
+
+    #[inline]
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    pub fn as_slice(&self) -> &[{{ ty.rs }}] {
+        unsafe {
+            let mut size: c_int = 0;
+            let ptr = transmute(crate::ffi::qffi_{{ name }}_asSlice(self.to_inner(), &mut size));
+            if size != 0 {
+                std::slice::from_raw_parts(ptr, size as usize)
+            } else {
+                &[]
+            }
+        }
+    }
+
+    pub fn push(&mut self, item: &{{ ty.rs }}) {
+        unsafe { crate::ffi::qffi_{{ name }}_append(self.to_inner_mut(), transmute(item)) }
+    }
+
+    pub fn append(&mut self, value: &{{ name }}) {
+        unsafe { crate::ffi::qffi_{{ name }}_appendList(self.to_inner_mut(), transmute(value)) }
+    }
+
+    pub fn extend_from_slice(&mut self, slice: &[{{ ty.rs }}]) {
+        unsafe { crate::ffi::qffi_{{ name }}_appendSlice(self.to_inner_mut(), transmute(slice.as_ptr()), slice.len() as c_int) }
+    }
+
+    pub fn reserve(&mut self, additional: usize) {
+        unsafe { crate::ffi::qffi_{{ name }}_reserveAdditional(self.to_inner_mut(), additional as i32) }
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &{{ ty.rs }}> {
+        self.as_slice().iter()
+    }
+}
+
+impl Extend<{{ ty.rs }}> for {{ name }} {
+    fn extend<T: IntoIterator<Item = {{ ty.rs }}>>(&mut self, iter: T) {
+        for item in iter {
+            self.push(&item);
+        }
+    }
+}
+
+impl<'a> Extend<&'a {{ ty.rs }}> for {{ name }} {
+    fn extend<T: IntoIterator<Item = &'a {{ ty.rs }}>>(&mut self, iter: T) {
+        for item in iter {
+            self.push(item);
+        }
+    }
+}
+
+impl FromIterator<{{ ty.rs }}> for {{ name }} {
+    fn from_iter<T: IntoIterator<Item = {{ ty.rs }}>>(iter: T) -> Self {
+        let mut res = Self::default();
+        res.extend(iter);
+        res
+    }
+}
+
+impl<'a> IntoIterator for &'a {{ name }} {
+    type Item = &'a {{ ty.rs }};
+    type IntoIter = std::slice::Iter<'a, {{ ty.rs }}>;
+
+    #[inline]
+    fn into_iter(self) -> Self::IntoIter {
+        self.as_slice().iter()
+    }
+}
+
+{% endfor %}

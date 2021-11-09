@@ -755,4 +755,106 @@ void qffi_QHashIntQByteArray_insert(QHashIntQByteArray * _self, const int* key, 
 
 
 
+
+// QObjectList
+
+static_assert(alignof(QObjectList) == alignof(Qffi_QObjectList), "Alignment of QObjectList incompatible");
+static_assert(sizeof(QObjectList) == sizeof(Qffi_QObjectList), "Size of QObjectList incompatible");
+
+
+void qffi_QObjectList_init(QObjectList* self) {
+    ::qffi_call_default_ctor((QObjectList*)self);
+}
+
+
+void qffi_QObjectList_clone(QObjectList const* self, QObjectList* new_) {
+    new ((QObjectList*)new_) QObjectList(*(QObjectList const*)self);
+}
+
+bool qffi_QObjectList_equals(QObjectList const* self, QObjectList const* other) {
+    return *((QObjectList const*)self) == *((QObjectList const*)other);
+}
+
+
+int qffi_QObjectList_size(QObjectList const* _self) {
+    auto* self = (QObjectList const*) _self;
+    return self->size();
+}
+
+QObject* const* qffi_QObjectList_asSlice(QObjectList const* _self, int* size) {
+    auto* self = (QObjectList const*) _self;
+    *size = self->size(); if (size == 0) { return nullptr; } else { return & self->front(); }
+}
+
+void qffi_QObjectList_append(QObjectList * _self, QObject* const* item) {
+    auto* self = (QObjectList *) _self;
+    self->append(*item);
+}
+
+void qffi_QObjectList_appendList(QObjectList * _self, QList<QObject*> const* item) {
+    auto* self = (QObjectList *) _self;
+    self->append(*item);
+}
+
+void qffi_QObjectList_appendSlice(QObjectList * _self, QObject* const* items, int size) {
+    auto* self = (QObjectList *) _self;
+    self->reserve(self->size() + size); for (int i = 0; i < size; ++i) { self->push_back(items[i]); }
+}
+
+void qffi_QObjectList_reserveAdditional(QObjectList * _self, int additional) {
+    auto* self = (QObjectList *) _self;
+    self->reserve(self->size() + additional);
+}
+
+
+// QStringList
+
+static_assert(alignof(QStringList) == alignof(Qffi_QStringList), "Alignment of QStringList incompatible");
+static_assert(sizeof(QStringList) == sizeof(Qffi_QStringList), "Size of QStringList incompatible");
+
+
+void qffi_QStringList_init(QStringList* self) {
+    ::qffi_call_default_ctor((QStringList*)self);
+}
+
+
+void qffi_QStringList_clone(QStringList const* self, QStringList* new_) {
+    new ((QStringList*)new_) QStringList(*(QStringList const*)self);
+}
+
+bool qffi_QStringList_equals(QStringList const* self, QStringList const* other) {
+    return *((QStringList const*)self) == *((QStringList const*)other);
+}
+
+
+int qffi_QStringList_size(QStringList const* _self) {
+    auto* self = (QStringList const*) _self;
+    return self->size();
+}
+
+QString const* qffi_QStringList_asSlice(QStringList const* _self, int* size) {
+    auto* self = (QStringList const*) _self;
+    *size = self->size(); if (size == 0) { return nullptr; } else { return & self->front(); }
+}
+
+void qffi_QStringList_append(QStringList * _self, QString const* item) {
+    auto* self = (QStringList *) _self;
+    self->append(*item);
+}
+
+void qffi_QStringList_appendList(QStringList * _self, QList<QString> const* item) {
+    auto* self = (QStringList *) _self;
+    self->append(*item);
+}
+
+void qffi_QStringList_appendSlice(QStringList * _self, QString const* items, int size) {
+    auto* self = (QStringList *) _self;
+    self->reserve(self->size() + size); for (int i = 0; i < size; ++i) { self->push_back(items[i]); }
+}
+
+void qffi_QStringList_reserveAdditional(QStringList * _self, int additional) {
+    auto* self = (QStringList *) _self;
+    self->reserve(self->size() + additional);
+}
+
 }

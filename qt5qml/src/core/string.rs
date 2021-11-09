@@ -2,15 +2,14 @@ use std::borrow::Cow;
 use std::cmp::Ordering;
 use std::ffi::{CStr, CString};
 use std::fmt::{self, Debug, Display};
-use std::mem::MaybeUninit;
 
 use crate::ffi;
-use crate::ffi::{init_ffi_struct, QffiWrapper};
+use crate::ffi::QffiWrapper;
 use std::os::raw::c_char;
 
 #[repr(C)]
 #[derive(Clone, Default, Eq, PartialEq)]
-pub struct QString(pub(crate) crate::ffi::QString);
+pub struct QString(crate::ffi::QString);
 impl_ffi_trait!(QString);
 
 impl QString {
@@ -190,7 +189,7 @@ impl<'a> ToQString for Option<Cow<'a, str>> {
 
 #[repr(C)]
 #[derive(Clone, Default, Eq, PartialEq)]
-pub struct QByteArray(pub(crate) crate::ffi::QByteArray);
+pub struct QByteArray(crate::ffi::QByteArray);
 impl_ffi_trait!(QByteArray);
 
 impl QByteArray {

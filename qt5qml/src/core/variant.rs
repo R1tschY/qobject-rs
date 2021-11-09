@@ -2,7 +2,7 @@ use crate::core::{QByteArray, QString};
 use crate::ffi::*;
 use std::convert::TryFrom;
 use std::fmt;
-use std::mem::{transmute, MaybeUninit};
+use std::mem::transmute;
 use std::str::from_utf8_unchecked;
 
 #[repr(C)]
@@ -87,7 +87,7 @@ qvariant_constructors! {
 impl From<&QString> for QVariant {
     #[inline]
     fn from(value: &QString) -> Self {
-        unsafe { QVariant::create(|v| qffi_QVariant_fromString(&value.0, v)) }
+        unsafe { QVariant::create(|v| qffi_QVariant_fromString(value.to_inner(), v)) }
     }
 }
 
@@ -101,7 +101,7 @@ impl From<QString> for QVariant {
 impl From<&QByteArray> for QVariant {
     #[inline]
     fn from(value: &QByteArray) -> Self {
-        unsafe { QVariant::create(|v| qffi_QVariant_fromByteArray(&value.0, v)) }
+        unsafe { QVariant::create(|v| qffi_QVariant_fromByteArray(value.to_inner(), v)) }
     }
 }
 

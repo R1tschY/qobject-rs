@@ -357,3 +357,75 @@ impl Drop for QThread {
         unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::ffi::QObject) }
     }
 }
+
+impl QObjectList {
+    #[inline]
+    pub fn new() -> Self {
+        unsafe {
+            let mut ret = MaybeUninit::uninit();
+            qffi_QObjectList_init(ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+}
+impl Default for QObjectList {
+    #[inline]
+    fn default() -> Self {
+        QObjectList::new()
+    }
+}
+
+impl Clone for QObjectList {
+    #[inline]
+    fn clone(&self) -> Self {
+        unsafe {
+            let mut ret = MaybeUninit::uninit();
+            qffi_QObjectList_clone(self, ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+}
+
+impl PartialEq for QObjectList {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        unsafe { qffi_QObjectList_equals(self, other) }
+    }
+}
+impl Eq for QObjectList { }
+
+impl QStringList {
+    #[inline]
+    pub fn new() -> Self {
+        unsafe {
+            let mut ret = MaybeUninit::uninit();
+            qffi_QStringList_init(ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+}
+impl Default for QStringList {
+    #[inline]
+    fn default() -> Self {
+        QStringList::new()
+    }
+}
+
+impl Clone for QStringList {
+    #[inline]
+    fn clone(&self) -> Self {
+        unsafe {
+            let mut ret = MaybeUninit::uninit();
+            qffi_QStringList_clone(self, ret.as_mut_ptr());
+            ret.assume_init()
+        }
+    }
+}
+
+impl PartialEq for QStringList {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        unsafe { qffi_QStringList_equals(self, other) }
+    }
+}
+impl Eq for QStringList { }

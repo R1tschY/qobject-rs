@@ -1,3 +1,9 @@
+prelude: |
+  template <typename T>
+  class QList;
+
+  class QMetaObject;
+
 classes:
   # == QString ==
   QString:
@@ -645,6 +651,14 @@ classes:
   # == QThread ==
   QThread:
     qobject: true
+
+qlists:
+  QObjectList:
+    cpp: "QObject*"
+    rs: "*mut crate::core::QObject"
+  QStringList:
+    cpp: "QString"
+    rs: "crate::core::QString"
 
 includes:
   - QDebug

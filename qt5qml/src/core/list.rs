@@ -1,19 +1,13 @@
-// GENERATED -- DO NOT EDIT!!
-
+use std::mem::transmute;
 use std::iter::FromIterator;
+use std::os::raw::c_int;
 
-cpp! {{
-    #include <QList>
-    #include <QObject>
-    #include <QString>
-    
-}}
+use crate::ffi::QffiWrapper;
 
-
-cpp_class!(
-    #[derive(Clone, PartialEq, Eq)]
-    pub unsafe struct QObjectList as "QList<QObject*>"
-);
+#[repr(C)]
+#[derive(Clone, Default, Eq, PartialEq)]
+pub struct QObjectList(crate::ffi::QObjectList);
+impl_ffi_trait!(QObjectList);
 
 impl QObjectList {
     #[inline]
@@ -23,9 +17,7 @@ impl QObjectList {
 
     #[inline]
     pub fn len(&self) -> i32 {
-        cpp!(unsafe [self as "const QList<QObject*>*"] -> i32 as "int" {
-            return self->size();
-        })
+        unsafe { crate::ffi::qffi_QObjectList_size(self.to_inner()) }
     }
 
     #[inline]
@@ -34,44 +26,31 @@ impl QObjectList {
     }
 
     pub fn as_slice(&self) -> &[*mut crate::core::QObject] {
-        let mut size = 0;
-        let ptr = cpp!(unsafe [
-            self as "const QList<QObject*>*", mut size as "size_t"
-        ] -> *const *mut crate::core::QObject as "QObject* const*" {
-            size = self->size();
-            return &self->front();
-        });
-        unsafe { std::slice::from_raw_parts(ptr, size) }
+        unsafe {
+            let mut size: c_int = 0;
+            let ptr = transmute(crate::ffi::qffi_QObjectList_asSlice(self.to_inner(), &mut size));
+            if size != 0 {
+                std::slice::from_raw_parts(ptr, size as usize)
+            } else {
+                &[]
+            }
+        }
     }
 
-    pub fn push(&mut self, item: *mut crate::core::QObject) {
-        cpp!(unsafe [self as "QList<QObject*>*", item as "QObject*"] {
-            self->append(item);
-        })
+    pub fn push(&mut self, item: &*mut crate::core::QObject) {
+        unsafe { crate::ffi::qffi_QObjectList_append(self.to_inner_mut(), transmute(item)) }
     }
 
     pub fn append(&mut self, value: &QObjectList) {
-        cpp!(unsafe [self as "QList<QObject*>*",
-                     value as "const QList<QObject*>*"] {
-            self->append(*value);
-        })
+        unsafe { crate::ffi::qffi_QObjectList_appendList(self.to_inner_mut(), transmute(value)) }
     }
 
     pub fn extend_from_slice(&mut self, slice: &[*mut crate::core::QObject]) {
-        let ptr = slice.as_ptr();
-        let size = slice.len();
-        cpp!(unsafe [self as "QList<QObject*>*", ptr as "QObject* const*", size as "size_t"] {
-            self->reserve(self->size() + size);
-            for (size_t i = 0; i < size; ++i) {
-                self->push_back(ptr[i]);
-            }
-        })
+        unsafe { crate::ffi::qffi_QObjectList_appendSlice(self.to_inner_mut(), transmute(slice.as_ptr()), slice.len() as c_int) }
     }
 
-    pub fn reserve(&self, additional: usize) {
-        cpp!(unsafe [self as "QList<QObject*>*", additional as "size_t"] {
-            self->reserve(self->size() + additional);
-        })
+    pub fn reserve(&mut self, additional: usize) {
+        unsafe { crate::ffi::qffi_QObjectList_reserveAdditional(self.to_inner_mut(), additional as i32) }
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &*mut crate::core::QObject> {
@@ -81,6 +60,14 @@ impl QObjectList {
 
 impl Extend<*mut crate::core::QObject> for QObjectList {
     fn extend<T: IntoIterator<Item = *mut crate::core::QObject>>(&mut self, iter: T) {
+        for item in iter {
+            self.push(&item);
+        }
+    }
+}
+
+impl<'a> Extend<&'a *mut crate::core::QObject> for QObjectList {
+    fn extend<T: IntoIterator<Item = &'a *mut crate::core::QObject>>(&mut self, iter: T) {
         for item in iter {
             self.push(item);
         }
@@ -105,10 +92,10 @@ impl<'a> IntoIterator for &'a QObjectList {
     }
 }
 
-cpp_class!(
-    #[derive(Clone, PartialEq, Eq)]
-    pub unsafe struct QStringList as "QList<QString>"
-);
+#[repr(C)]
+#[derive(Clone, Default, Eq, PartialEq)]
+pub struct QStringList(crate::ffi::QStringList);
+impl_ffi_trait!(QStringList);
 
 impl QStringList {
     #[inline]
@@ -118,9 +105,7 @@ impl QStringList {
 
     #[inline]
     pub fn len(&self) -> i32 {
-        cpp!(unsafe [self as "const QList<QString>*"] -> i32 as "int" {
-            return self->size();
-        })
+        unsafe { crate::ffi::qffi_QStringList_size(self.to_inner()) }
     }
 
     #[inline]
@@ -129,44 +114,31 @@ impl QStringList {
     }
 
     pub fn as_slice(&self) -> &[crate::core::QString] {
-        let mut size = 0;
-        let ptr = cpp!(unsafe [
-            self as "const QList<QString>*", mut size as "size_t"
-        ] -> *const crate::core::QString as "QString const*" {
-            size = self->size();
-            return &self->front();
-        });
-        unsafe { std::slice::from_raw_parts(ptr, size) }
+        unsafe {
+            let mut size: c_int = 0;
+            let ptr = transmute(crate::ffi::qffi_QStringList_asSlice(self.to_inner(), &mut size));
+            if size != 0 {
+                std::slice::from_raw_parts(ptr, size as usize)
+            } else {
+                &[]
+            }
+        }
     }
 
-    pub fn push(&mut self, item: crate::core::QString) {
-        cpp!(unsafe [self as "QList<QString>*", item as "QString"] {
-            self->append(item);
-        })
+    pub fn push(&mut self, item: &crate::core::QString) {
+        unsafe { crate::ffi::qffi_QStringList_append(self.to_inner_mut(), transmute(item)) }
     }
 
     pub fn append(&mut self, value: &QStringList) {
-        cpp!(unsafe [self as "QList<QString>*",
-                     value as "const QList<QString>*"] {
-            self->append(*value);
-        })
+        unsafe { crate::ffi::qffi_QStringList_appendList(self.to_inner_mut(), transmute(value)) }
     }
 
     pub fn extend_from_slice(&mut self, slice: &[crate::core::QString]) {
-        let ptr = slice.as_ptr();
-        let size = slice.len();
-        cpp!(unsafe [self as "QList<QString>*", ptr as "QString const*", size as "size_t"] {
-            self->reserve(self->size() + size);
-            for (size_t i = 0; i < size; ++i) {
-                self->push_back(ptr[i]);
-            }
-        })
+        unsafe { crate::ffi::qffi_QStringList_appendSlice(self.to_inner_mut(), transmute(slice.as_ptr()), slice.len() as c_int) }
     }
 
-    pub fn reserve(&self, additional: usize) {
-        cpp!(unsafe [self as "QList<QString>*", additional as "size_t"] {
-            self->reserve(self->size() + additional);
-        })
+    pub fn reserve(&mut self, additional: usize) {
+        unsafe { crate::ffi::qffi_QStringList_reserveAdditional(self.to_inner_mut(), additional as i32) }
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &crate::core::QString> {
@@ -176,6 +148,14 @@ impl QStringList {
 
 impl Extend<crate::core::QString> for QStringList {
     fn extend<T: IntoIterator<Item = crate::core::QString>>(&mut self, iter: T) {
+        for item in iter {
+            self.push(&item);
+        }
+    }
+}
+
+impl<'a> Extend<&'a crate::core::QString> for QStringList {
+    fn extend<T: IntoIterator<Item = &'a crate::core::QString>>(&mut self, iter: T) {
         for item in iter {
             self.push(item);
         }

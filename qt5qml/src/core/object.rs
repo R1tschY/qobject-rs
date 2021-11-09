@@ -8,7 +8,6 @@ use crate::ffi::{
 use crate::QBox;
 use std::borrow::Cow;
 use std::ffi::{CStr, CString, NulError};
-use std::os::raw::c_char;
 use std::ptr;
 
 #[repr(C)]

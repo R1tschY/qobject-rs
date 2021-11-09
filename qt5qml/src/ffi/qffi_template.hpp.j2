@@ -13,6 +13,11 @@
 #define QFFI_CLASSNAME(cls) Qffi_ ## cls
 #endif
 
+{%- if prelude %}
+
+{{ prelude }}
+{% endif %}
+
 {% for name, cls in classes.items() -%}
 {%- if cls.overwrite_name -%}
 {%- set cls_name = name -%}

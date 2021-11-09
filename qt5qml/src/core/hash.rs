@@ -1,7 +1,7 @@
 // GENERATED -- DO NOT EDIT!!
 
 use crate::core::QByteArray;
-use crate::ffi::{qffi_QHashIntQByteArray_insert, qffi_QHashIntQByteArray_size};
+use crate::ffi::{qffi_QHashIntQByteArray_insert, qffi_QHashIntQByteArray_size, QffiWrapper};
 use std::collections::HashMap;
 
 #[repr(C)]
@@ -25,7 +25,7 @@ impl QHashIntQByteArray {
     }
 
     pub fn insert(&mut self, key: &i32, value: &QByteArray) {
-        unsafe { qffi_QHashIntQByteArray_insert(&mut self.0, key, &value.0) }
+        unsafe { qffi_QHashIntQByteArray_insert(&mut self.0, key, value.to_inner()) }
     }
 }
 

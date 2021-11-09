@@ -16,6 +16,8 @@
     #include <QGuiApplication>
     #include <QHash>
     #include <QThread>
+    #include <QList>
+    #include <QList>
     #include <QDebug>
 #endif
 
@@ -24,6 +26,13 @@
 #else
 #define QFFI_CLASSNAME(cls) Qffi_ ## cls
 #endif
+
+template <typename T>
+class QList;
+
+class QMetaObject;
+
+
 
 class QFFI_CLASSNAME(QString) {
     void* __d;
@@ -88,6 +97,14 @@ class QHashIntQByteArray {
 };
 
 class QFFI_CLASSNAME(QThread);
+
+class QFFI_CLASSNAME(QObjectList) {
+    void* __d;
+};
+
+class QFFI_CLASSNAME(QStringList) {
+    void* __d;
+};
 
 #undef QFFI_CLASSNAME
 
@@ -247,6 +264,28 @@ int qffi_QHashIntQByteArray_size(QHashIntQByteArray const* self);
 void qffi_QHashIntQByteArray_insert(QHashIntQByteArray * self, const int* key, const QByteArray* value);
 
 
+
+
+void qffi_QObjectList_init(QObjectList* self);
+void qffi_QObjectList_clone(QObjectList const* self, QObjectList* new_);
+bool qffi_QObjectList_equals(QObjectList const* self, QObjectList const* other);
+int qffi_QObjectList_size(QObjectList const* self);
+QObject* const* qffi_QObjectList_asSlice(QObjectList const* self, int* size);
+void qffi_QObjectList_append(QObjectList * self, QObject* const* item);
+void qffi_QObjectList_appendList(QObjectList * self, QList<QObject*> const* item);
+void qffi_QObjectList_appendSlice(QObjectList * self, QObject* const* items, int size);
+void qffi_QObjectList_reserveAdditional(QObjectList * self, int additional);
+
+
+void qffi_QStringList_init(QStringList* self);
+void qffi_QStringList_clone(QStringList const* self, QStringList* new_);
+bool qffi_QStringList_equals(QStringList const* self, QStringList const* other);
+int qffi_QStringList_size(QStringList const* self);
+QString const* qffi_QStringList_asSlice(QStringList const* self, int* size);
+void qffi_QStringList_append(QStringList * self, QString const* item);
+void qffi_QStringList_appendList(QStringList * self, QList<QString> const* item);
+void qffi_QStringList_appendSlice(QStringList * self, QString const* items, int size);
+void qffi_QStringList_reserveAdditional(QStringList * self, int additional);
 
 
 
