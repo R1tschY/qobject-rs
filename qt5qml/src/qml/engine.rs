@@ -1,8 +1,4 @@
-cpp! {{
-    #include <QQmlEngine>
-}}
-
-opaque_struct!(QQmlEngine);
+#[repr(C)]
+pub struct QQmlEngine(pub(crate) crate::ffi::QQmlEngine);
+impl_ffi_trait!(QQmlEngine);
 impl_qobject_ref!(QQmlEngine);
-
-impl QQmlEngine {}

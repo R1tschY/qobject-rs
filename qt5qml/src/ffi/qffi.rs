@@ -81,6 +81,14 @@ pub struct QThread {
     _unused: [u8; 0],
 }
 #[repr(C)]
+pub struct QQmlEngine {
+    _unused: [u8; 0],
+}
+#[repr(C)]
+pub struct QQmlApplicationEngine {
+    _unused: [u8; 0],
+}
+#[repr(C)]
 pub struct QObjectList {
     pub __d: *mut ::std::os::raw::c_void,
 }
@@ -565,6 +573,18 @@ extern "C" {
         self_: *mut QHashIntQByteArray,
         key: *const ::std::os::raw::c_int,
         value: *const QByteArray,
+    );
+}
+extern "C" {
+    pub fn qffi_QQmlApplicationEngine_init(parent: *mut QObject) -> *mut QQmlApplicationEngine;
+}
+extern "C" {
+    pub fn qffi_QQmlApplicationEngine_load(self_: *mut QQmlApplicationEngine, url: *const QUrl);
+}
+extern "C" {
+    pub fn qffi_QQmlApplicationEngine_rootObjects(
+        self_: *const QQmlApplicationEngine,
+        result: *mut QObjectList,
     );
 }
 extern "C" {

@@ -64,7 +64,7 @@ impl TestObjectPrivate {
 
 fn main() {
     let app = QGuiApplication::new_from_env_args();
-    let mut engine = QQmlApplicationEngine::new(None);
+    let mut engine = QQmlApplicationEngine::new();
 
     TestObject::register_type(cstr!("qobject_rs.test"), 1, 0, cstr!("TestObject"));
 

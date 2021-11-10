@@ -16,6 +16,8 @@
     #include <QGuiApplication>
     #include <QHash>
     #include <QThread>
+    #include <QQmlEngine>
+    #include <QQmlApplicationEngine>
     #include <QList>
     #include <QList>
     #include <QDebug>
@@ -97,6 +99,10 @@ class QHashIntQByteArray {
 };
 
 class QFFI_CLASSNAME(QThread);
+
+class QFFI_CLASSNAME(QQmlEngine);
+
+class QFFI_CLASSNAME(QQmlApplicationEngine);
 
 class QFFI_CLASSNAME(QObjectList) {
     void* __d;
@@ -264,6 +270,13 @@ int qffi_QHashIntQByteArray_size(QHashIntQByteArray const* self);
 void qffi_QHashIntQByteArray_insert(QHashIntQByteArray * self, const int* key, const QByteArray* value);
 
 
+
+
+
+
+QQmlApplicationEngine* qffi_QQmlApplicationEngine_init(QObject* parent);
+void qffi_QQmlApplicationEngine_load(QQmlApplicationEngine * self, const QUrl* url);
+void qffi_QQmlApplicationEngine_rootObjects(QQmlApplicationEngine const* self, QObjectList* result);
 
 
 void qffi_QObjectList_init(QObjectList* self);

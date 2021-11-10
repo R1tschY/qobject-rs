@@ -358,6 +358,20 @@ impl Drop for QThread {
     }
 }
 
+impl Drop for QQmlEngine {
+    #[inline]
+    fn drop(&mut self) {
+        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::ffi::QObject) }
+    }
+}
+
+impl Drop for QQmlApplicationEngine {
+    #[inline]
+    fn drop(&mut self) {
+        unsafe { qffi_QObject_destroy(self as *mut _ as *mut crate::ffi::QObject) }
+    }
+}
+
 impl QObjectList {
     #[inline]
     pub fn new() -> Self {

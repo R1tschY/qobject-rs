@@ -756,6 +756,33 @@ void qffi_QHashIntQByteArray_insert(QHashIntQByteArray * _self, const int* key, 
 
 
 
+// QQmlEngine
+
+
+
+
+
+
+// QQmlApplicationEngine
+QQmlApplicationEngine* qffi_QQmlApplicationEngine_init(QObject* parent) {
+    return (QQmlApplicationEngine*)new QQmlApplicationEngine(parent);
+}
+
+
+
+
+
+void qffi_QQmlApplicationEngine_load(QQmlApplicationEngine * _self, const QUrl* url) {
+    auto* self = (QQmlApplicationEngine *) _self;
+    self->load(*url);
+}
+
+void qffi_QQmlApplicationEngine_rootObjects(QQmlApplicationEngine const* _self, QObjectList* result) {
+    auto* self = (QQmlApplicationEngine const*) _self;
+    qffi_call_ctor(result, self->rootObjects());
+}
+
+
 // QObjectList
 
 static_assert(alignof(QObjectList) == alignof(Qffi_QObjectList), "Alignment of QObjectList incompatible");

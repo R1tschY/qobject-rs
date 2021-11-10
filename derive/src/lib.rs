@@ -107,7 +107,7 @@ fn parse_attributes(method: &mut syn::ImplItemMethod) -> QObjectDeriveResult<Vec
         .map(|attr| {
             let span = attr.span();
             let segments = &attr.path.segments;
-            if segments[0].arguments != PathArguments::None {
+            if !matches!(segments[0].arguments, PathArguments::None) {
                 return Err(illegal_input("path arguments on attribute", span));
             }
 
@@ -225,7 +225,7 @@ fn resolve_type_ref(ty: &Type) -> QObjectDeriveResult<TypeRef> {
         .segments
         .iter()
         .map(|seg| {
-            if seg.arguments == PathArguments::None {
+            if matches!(seg.arguments, PathArguments::None) {
                 Err(illegal_input("unexpected path arguments", &seg.arguments))
             } else {
                 Ok(seg.ident.to_string())
@@ -291,7 +291,7 @@ fn parse(_args: TokenStream, mut impl_block: syn::ItemImpl) -> QObjectDeriveResu
         Type::Path(syn::TypePath { qself, path })
             if qself.is_none()
                 && path.segments.len() == 1
-                && path.segments[0].arguments == PathArguments::None =>
+                && matches!(path.segments[0].arguments, PathArguments::None) =>
         {
             path.segments[0].ident.to_string()
         }

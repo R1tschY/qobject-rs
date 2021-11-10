@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate cpp;
-
 /// Define a opaque struct.
 #[macro_export]
 macro_rules! opaque_struct {

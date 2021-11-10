@@ -11,11 +11,11 @@ impl_ffi_trait!(QUrl);
 
 impl QUrl {
     pub fn from_qstring(value: &QString) -> Self {
-        QUrl::create(|dest| unsafe { ffi::qffi_QUrl_fromString(value.to_inner(), dest) })
+        unsafe { QUrl::create(|dest| ffi::qffi_QUrl_fromString(value.to_inner(), dest)) }
     }
 
     fn from_local_file_intern(local_file: &QString) -> Self {
-        QUrl::create(|dest| unsafe { ffi::qffi_QUrl_fromLocalFile(local_file.to_inner(), dest) })
+        unsafe { QUrl::create(|dest| ffi::qffi_QUrl_fromLocalFile(local_file.to_inner(), dest)) }
     }
 
     pub fn from_local_file<T: Into<QString>>(local_file: T) -> Self {
@@ -46,7 +46,7 @@ impl From<String> for QUrl {
 impl fmt::Debug for QUrl {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let str: String =
-            QString::create(|dest| unsafe { ffi::qffi_QUrl_debug(self.to_inner(), dest) }).into();
+            unsafe { QString::create(|dest| ffi::qffi_QUrl_debug(self.to_inner(), dest)).into() };
         f.write_str(&str)
     }
 }

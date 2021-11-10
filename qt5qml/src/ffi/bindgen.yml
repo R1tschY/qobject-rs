@@ -652,6 +652,26 @@ classes:
   QThread:
     qobject: true
 
+  # == QQmlEngine ==
+  QQmlEngine:
+    qobject: true
+
+  # == QQmlApplicationEngine ==
+  QQmlApplicationEngine:
+    qobject: true
+    qobject-default-ctor: true
+
+    methods:
+      load:
+        params:
+          url: const QUrl*
+        body: self->load(*url);
+      rootObjects:
+        const: true
+        params:
+          result: QObjectList*
+        body: qffi_call_ctor(result, self->rootObjects());
+
 qlists:
   QObjectList:
     cpp: "QObject*"

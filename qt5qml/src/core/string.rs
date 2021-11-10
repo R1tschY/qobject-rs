@@ -28,15 +28,23 @@ impl QString {
 
     pub fn from_utf8(input: &str) -> Self {
         let bytes = input.as_bytes();
-        QString::create(|dest| unsafe {
-            ffi::qffi_QString_fromUtf8(bytes.as_ptr() as *const c_char, bytes.len() as i32, dest)
-        })
+        unsafe {
+            QString::create(|dest| {
+                ffi::qffi_QString_fromUtf8(
+                    bytes.as_ptr() as *const c_char,
+                    bytes.len() as i32,
+                    dest,
+                )
+            })
+        }
     }
 
     pub fn from_utf16(bytes: &[u16]) -> Self {
-        QString::create(|dest| unsafe {
-            ffi::qffi_QString_fromUtf16(bytes.as_ptr(), bytes.len() as i32, dest)
-        })
+        unsafe {
+            QString::create(|dest| {
+                ffi::qffi_QString_fromUtf16(bytes.as_ptr(), bytes.len() as i32, dest)
+            })
+        }
     }
 
     pub unsafe fn from_utf16_unchecked(bytes: &[u16]) -> Self {
@@ -47,7 +55,7 @@ impl QString {
 
     #[inline]
     pub fn to_utf8(&self) -> QByteArray {
-        QByteArray::create(|dest| unsafe { ffi::qffi_QString_toUtf8(&self.0, dest) })
+        unsafe { QByteArray::create(|dest| ffi::qffi_QString_toUtf8(&self.0, dest)) }
     }
 
     #[allow(clippy::inherent_to_string_shadow_display)]
@@ -202,9 +210,15 @@ impl QByteArray {
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Self {
-        QByteArray::create(|dest| unsafe {
-            ffi::qffi_QByteArray_fromData(bytes.as_ptr() as *const c_char, bytes.len() as i32, dest)
-        })
+        unsafe {
+            QByteArray::create(|dest| {
+                ffi::qffi_QByteArray_fromData(
+                    bytes.as_ptr() as *const c_char,
+                    bytes.len() as i32,
+                    dest,
+                )
+            })
+        }
     }
 }
 
