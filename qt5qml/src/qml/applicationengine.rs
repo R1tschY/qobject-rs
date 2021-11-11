@@ -39,10 +39,10 @@ impl QQmlApplicationEngine {
         self.load_intern(&QUrl::from_local_file(file_path))
     }
 
-    pub fn root_objects(&self) -> QObjectList {
+    pub fn root_objects(&mut self) -> QObjectList {
         unsafe {
             QObjectList::create(|res| {
-                crate::ffi::qffi_QQmlApplicationEngine_rootObjects(self.to_inner(), res);
+                crate::ffi::qffi_QQmlApplicationEngine_rootObjects(self.to_inner_mut(), res);
             })
         }
     }

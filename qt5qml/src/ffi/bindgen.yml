@@ -667,7 +667,7 @@ classes:
           url: const QUrl*
         body: self->load(*url);
       rootObjects:
-        const: true
+        # TODO: Qt >= 5.9: const: true
         params:
           result: QObjectList*
         body: qffi_call_ctor(result, self->rootObjects());
