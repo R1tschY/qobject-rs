@@ -1,6 +1,6 @@
 use qobject_compiler::moc::MocConfig;
+use qobject_compiler::typeref::QString;
 use qobject_compiler::{CcBuild, QObjectBuild, QObjectProp};
-use qt5qml::core::QString;
 
 fn main() {
     let config = pkg_config::probe_library("Qt5Core").unwrap();

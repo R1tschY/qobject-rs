@@ -1,7 +1,6 @@
 use qobject_compiler::moc::MocConfig;
-use qobject_compiler::typeref::TypeRef;
+use qobject_compiler::typeref::{QModelIndex, QVariant, TypeRef};
 use qobject_compiler::{CcBuild, QObjectBuild, QObjectMethod};
-use qt5qml::core::{QModelIndex, QVariant};
 
 fn main() {
     let config = pkg_config::probe_library("Qt5Core").unwrap();

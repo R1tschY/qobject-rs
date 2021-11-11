@@ -1,7 +1,7 @@
 use qobject_compiler::moc::MocConfig;
 use qobject_compiler::typeref::TypeRef;
+use qobject_compiler::typeref::{QHashIntQByteArray, QModelIndex, QVariant};
 use qobject_compiler::{CcBuild, QObjectBuild, QObjectMethod};
-use qt5qml::core::{QHashIntQByteArray, QModelIndex, QVariant};
 
 fn main() {
     let core = pkg_config::probe_library("Qt5Core").unwrap();

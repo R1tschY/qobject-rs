@@ -418,7 +418,7 @@ impl GenerateCppCode for QObjectConfig {
 
 #[cfg(test)]
 mod tests {
-    use qt5qml::core::QString;
+    use crate::typeref::QString;
 
     use super::*;
 

@@ -191,6 +191,18 @@ macro_rules! impl_type_ref_trait {
             }
         }
     };
+    ($rust:ty : $placeholder:ty => $cpp:expr, $return_safe:expr, $include:expr) => {
+        impl TypeRefTrait for $placeholder {
+            fn type_ref() -> TypeRef {
+                TypeRef::new(
+                    $cpp,
+                    stringify!($rust),
+                    $return_safe,
+                    Some(Include::System($include.into())),
+                )
+            }
+        }
+    };
     ($rust:ty => $cpp:expr, $return_safe:expr) => {
         impl TypeRefTrait for $rust {
             fn type_ref() -> TypeRef {
@@ -199,6 +211,13 @@ macro_rules! impl_type_ref_trait {
         }
     };
 }
+
+pub struct QModelIndex;
+pub struct QObject;
+pub struct QString;
+pub struct QByteArray;
+pub struct QVariant;
+pub struct QHashIntQByteArray;
 
 impl_type_ref_trait!(i8 => "qint8", true, "QtGlobal");
 impl_type_ref_trait!(u8 => "quint8", true, "QtGlobal");
@@ -212,9 +231,9 @@ impl_type_ref_trait!(f32 => "float", true);
 impl_type_ref_trait!(f64 => "double", true);
 impl_type_ref_trait!(bool => "bool", true);
 impl_type_ref_trait!(std::os::raw::c_void => "void", false);
-impl_type_ref_trait!(qt5qml::core::QModelIndex => "QModelIndex", false, "QModelIndex");
-impl_type_ref_trait!(qt5qml::core::QObject => "QObject", false, "QObject");
-impl_type_ref_trait!(qt5qml::core::QString => "QString", false, "QString");
-impl_type_ref_trait!(qt5qml::core::QByteArray => "QByteArray", false, "QByteArray");
-impl_type_ref_trait!(qt5qml::core::QVariant => "QVariant", false, "QVariant");
-impl_type_ref_trait!(qt5qml::core::QHashIntQByteArray => "QHash<int, QByteArray>", false, "QHash");
+impl_type_ref_trait!(qt5qml::core::QModelIndex : QModelIndex => "QModelIndex", false, "QModelIndex");
+impl_type_ref_trait!(qt5qml::core::QObject : QObject => "QObject", false, "QObject");
+impl_type_ref_trait!(qt5qml::core::QString : QString => "QString", false, "QString");
+impl_type_ref_trait!(qt5qml::core::QByteArray : QByteArray => "QByteArray", false, "QByteArray");
+impl_type_ref_trait!(qt5qml::core::QVariant : QVariant => "QVariant", false, "QVariant");
+impl_type_ref_trait!(qt5qml::core::QHashIntQByteArray : QHashIntQByteArray => "QHash<int, QByteArray>", false, "QHash");
