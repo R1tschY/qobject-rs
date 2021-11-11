@@ -440,9 +440,27 @@ classes:
     eq: true
     ord: true
 
-    layout:
-      __data: void*
-      __type: unsigned int
+    layout: |
+      union {
+          char c;
+          unsigned char uc;
+          short s;
+          signed char sc;
+          unsigned short us;
+          int i;
+          unsigned int u;
+          long l;
+          unsigned long ul;
+          bool b;
+          double d;
+          float f;
+          long long ll;
+          unsigned long long ull;
+          void *ptr;
+      } data;
+      unsigned int type: 30;
+      unsigned int is_shared: 1;
+      unsigned int is_null: 1;
 
     methods:
       isValid:

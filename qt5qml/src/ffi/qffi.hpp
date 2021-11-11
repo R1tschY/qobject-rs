@@ -84,8 +84,27 @@ class QMetaObjectConnection {
 };
 
 class QFFI_CLASSNAME(QVariant) {
-    void* __data;
-    unsigned int __type;
+    union {
+        char c;
+        unsigned char uc;
+        short s;
+        signed char sc;
+        unsigned short us;
+        int i;
+        unsigned int u;
+        long l;
+        unsigned long ul;
+        bool b;
+        double d;
+        float f;
+        long long ll;
+        unsigned long long ull;
+        void *ptr;
+    } data;
+    unsigned int type: 30;
+    unsigned int is_shared: 1;
+    unsigned int is_null: 1;
+
 };
 
 class QFFI_CLASSNAME(QTimer);
@@ -276,7 +295,7 @@ void qffi_QHashIntQByteArray_insert(QHashIntQByteArray * self, const int* key, c
 
 QQmlApplicationEngine* qffi_QQmlApplicationEngine_init(QObject* parent);
 void qffi_QQmlApplicationEngine_load(QQmlApplicationEngine * self, const QUrl* url);
-void qffi_QQmlApplicationEngine_rootObjects(QQmlApplicationEngine const* self, QObjectList* result);
+void qffi_QQmlApplicationEngine_rootObjects(QQmlApplicationEngine * self, QObjectList* result);
 
 
 void qffi_QObjectList_init(QObjectList* self);

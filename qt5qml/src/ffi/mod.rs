@@ -26,9 +26,9 @@ pub(crate) trait QffiWrapper: Sized {
     fn to_inner_mut(&mut self) -> &mut Self::QffiObject;
 
     #[inline]
-    unsafe fn create<F>(f: F) -> Self
+    unsafe fn create<F>(mut f: F) -> Self
     where
-        F: Fn(*mut Self::QffiObject) -> (),
+        F: FnMut(*mut Self::QffiObject) -> (),
     {
         let mut ret = MaybeUninit::uninit();
         f(ret.as_mut_ptr());

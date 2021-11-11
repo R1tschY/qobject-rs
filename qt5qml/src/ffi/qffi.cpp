@@ -777,8 +777,8 @@ void qffi_QQmlApplicationEngine_load(QQmlApplicationEngine * _self, const QUrl* 
     self->load(*url);
 }
 
-void qffi_QQmlApplicationEngine_rootObjects(QQmlApplicationEngine const* _self, QObjectList* result) {
-    auto* self = (QQmlApplicationEngine const*) _self;
+void qffi_QQmlApplicationEngine_rootObjects(QQmlApplicationEngine * _self, QObjectList* result) {
+    auto* self = (QQmlApplicationEngine *) _self;
     qffi_call_ctor(result, self->rootObjects());
 }
 

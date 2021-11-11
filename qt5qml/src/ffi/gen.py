@@ -37,7 +37,7 @@ class Class(BaseModel):
     eq: bool = False
     ord: bool = False
 
-    layout: Dict[str, str] = Field(default_factory=dict)
+    layout: Union[str, Dict[str, str]] = Field(default_factory=dict)
     methods: Dict[str, Method] = Field(default_factory=dict)
     qobject: bool = False
     qobject_default_ctor: bool = Field(default=False, alias="qobject-default-ctor")

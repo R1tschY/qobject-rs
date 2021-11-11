@@ -27,9 +27,13 @@
 
 {%- if cls.layout -%}
 class {{ cls_name }} {
+    {%- if cls.layout is mapping -%}
     {%- for name, ty in cls.layout.items() %}
     {{ ty }} {{ name }};
     {%- endfor %}
+    {%- else %}
+    {{ cls.layout | indent(width=4, indentfirst=False) }}
+    {%- endif %}
 };
 {% else -%}
 class QFFI_CLASSNAME({{ name }});
